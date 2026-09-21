@@ -327,6 +327,24 @@ function analysisRow(name,d){
 }
 
 function escapeHtml(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+$('createAccountBtn').onclick=async()=>{
+  const email=$('signupEmail').value.trim();
+  const password=$('signupPassword').value;
+
+  $('signupStatus').textContent='Creating account...';
+
+  const {error}=await supabaseClient.auth.signUp({
+    email,
+    password
+  });
+
+  if(error){
+    $('signupStatus').textContent=error.message;
+    return;
+  }
+
+  $('signupStatus').textContent='Account created! Check your email to confirm your account.';
+};
 $('loginBtn').onclick=()=>show('login');
 $('signupBtn').onclick=()=>show('signup');
 $('backFromSignup').onclick=()=>show('home');
