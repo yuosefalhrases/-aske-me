@@ -327,6 +327,9 @@ function analysisRow(name,d){
 }
 
 function escapeHtml(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+$('loginBtn').onclick=()=>show('login');
+$('signupBtn').onclick=()=>show('signup');
+$('backFromSignup').onclick=()=>show('home');
 $('restart').onclick=()=>location.reload();
 </script>
 </body>
