@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import JSZip from "jszip";
 import mammoth from "mammoth";
-import pdfParse from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 import OpenAI from "openai";
 
 const app=express();
@@ -21,7 +21,11 @@ async function pptxText(filePath){
 }
 async function extract(file){
  const ext=path.extname(file.originalname).toLowerCase();
- if(ext===".pdf"){const r=await pdfParse(await fs.promises.readFile(file.path));return r.text}
+ if(ext===".pdf"){
+  const parser=new PDFParse({data:await fs.promises.readFile(file.path)});
+  try{const r=await parser.getText();return r.text}
+  finally{await parser.destroy()}
+}
  if(ext===".docx"){const r=await mammoth.extractRawText({path:file.path});return r.value}
  if(ext===".pptx")return pptxText(file.path);
  throw new Error("This first online build supports PDF, DOCX and PPTX.");
