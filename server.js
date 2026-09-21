@@ -8,7 +8,7 @@ import { PDFParse } from "pdf-parse";
 import OpenAI from "openai";
 
 const app=express();
-const upload=multer({dest:"uploads/",limits:{fileSize:20*1024*1024}});
+const upload=multer({dest:"uploads/",limits:{fileSize:100*1024*1024}});
 const port=process.env.PORT||3000;
 app.use(express.static("."));
 
