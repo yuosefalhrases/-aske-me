@@ -158,6 +158,19 @@ input[type=file]{display:none}
   .steps{overflow:hidden;justify-content:flex-start}
 }
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  const SUPABASE_URL = "https://lxyfhgkuxpsrcofwfnml.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_....";
+
+  const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+</script>
+
 </head>
 <body>
 <div class="wrap">
