@@ -199,6 +199,35 @@ input[type=file]{display:none}
 <div class="card"><div class="top"><span id="qNum"></span><span id="qDiff"></span></div><div class="progress"><div id="bar" class="bar"></div></div><h2 id="qText" class="question"></h2><div id="opts" class="options"></div><div class="quiz-actions"><button id="prev" class="btn secondary" type="button">← Previous</button><button id="next" class="btn primary" disabled>Next</button></div></div>
 </section>
 
+<section id="signup" class="screen">
+  <div class="card">
+    <h2>Create your AskMe account</h2>
+    <p class="muted">Create an account to save your exams and results.</p>
+
+    <div class="field" style="margin-top:18px">
+      <label>Email</label>
+      <input id="signupEmail" type="email" placeholder="you@example.com"
+             style="width:100%;padding:13px 12px;border:1px solid #dfe2eb;border-radius:12px;outline:none">
+    </div>
+
+    <div class="field" style="margin-top:14px">
+      <label>Password</label>
+      <input id="signupPassword" type="password" placeholder="At least 6 characters"
+             style="width:100%;padding:13px 12px;border:1px solid #dfe2eb;border-radius:12px;outline:none">
+    </div>
+
+    <button id="createAccountBtn" class="btn primary" type="button">
+      Create account
+    </button>
+
+    <button id="backFromSignup" class="btn secondary" type="button">
+      Back
+    </button>
+
+    <div id="signupStatus" class="note"></div>
+  </div>
+</section>
+
 <section id="result" class="screen">
 <div class="steps"><span class="step">1 Upload</span><span class="step">2 Generate</span><span class="step">3 Quiz</span><span class="step active">4 Results</span></div>
 <div class="card result"><div class="muted">Your score</div><div id="score" class="score"></div><div id="percent" class="percent"></div>
