@@ -39,7 +39,7 @@ app.post("/api/generate-quiz",upload.single("file"),async(req,res)=>{
  let p;
  try{
   if(!req.file)return res.status(400).json({error:"No file uploaded."});p=req.file.path;
-  const count=Math.min(Math.max(parseInt(req.body.count||"10"),1),20);
+  const count=Math.min(Math.max(parseInt(req.body.count||"10"),1),50);
   const difficulty=["Easy","Medium","Hard"].includes(req.body.difficulty)?req.body.difficulty:"Medium";
   const material=(await extract(req.file)).slice(0,180000);
   if(material.trim().length<100)return res.status(400).json({error:"Not enough readable text."});
