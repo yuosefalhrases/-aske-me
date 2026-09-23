@@ -4,8 +4,12 @@ import fs from "fs";
 import path from "path";
 import JSZip from "jszip";
 import mammoth from "mammoth";
-import pdf from "pdf-parse"; // ✅ تم تصحيح الاستيراد
+import { createRequire } from "module";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+
+// حل مشكلة استيراد pdf-parse في نظام ES Modules
+const require = createRequire(import.meta.url);
+const pdf = require("pdf-parse");
 
 const app = express();
 const upload = multer({ dest: "uploads/", limits: { fileSize: 100 * 1024 * 1024 } });
@@ -28,21 +32,20 @@ async function pptxText(filePath) {
 
 async function extract(file) {
   const ext = path.extname(file.originalname).toLowerCase();
-  
+
   if (ext === ".pdf") {
-    // ✅ تم تصحيح طريقة قراءة الـ PDF
     const dataBuffer = await fs.promises.readFile(file.path);
     const r = await pdf(dataBuffer);
     return r.text;
   }
-  
+
   if (ext === ".docx") {
     const r = await mammoth.extractRawText({ path: file.path });
     return r.value;
   }
-  
+
   if (ext === ".pptx") return pptxText(file.path);
-  
+
   throw new Error("This first online build supports PDF, DOCX and PPTX.");
 }
 
@@ -59,7 +62,10 @@ const schema = {
           correct_answer: { type: "integer" },
           explanation: { type: "string" },
           difficulty: { type: "string", enum: ["Easy", "Medium", "Hard"] },
-          cognitive_level: { type: "string", enum: ["Recall", "Understanding", "Application", "Integration"] },
+          cognitive_level: {
+            type: "string",
+            enum: ["Recall", "Understanding", "Application", "Integration"],
+          },
           topic: { type: "string" },
           source: { type: "string" },
         },
@@ -84,16 +90,18 @@ app.post("/api/generate-quiz", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded." });
     p = req.file.path;
-    
+
     const count = Math.min(Math.max(parseInt(req.body.count || "10"), 1), 50);
     const difficulty = ["Easy", "Medium", "Hard"].includes(req.body.difficulty)
       ? req.body.difficulty
       : "Medium";
-      
+
     const material = (await extract(req.file)).slice(0, 180000);
-    if (material.trim().length < 100) return res.status(400).json({ error: "Not enough readable text." });
-    
-    if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: "Server AI key is not configured." });
+    if (material.trim().length < 100)
+      return res.status(400).json({ error: "Not enough readable text." });
+
+    if (!process.env.GEMINI_API_KEY)
+      return res.status(500).json({ error: "Server AI key is not configured." });
 
     const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -129,7 +137,6 @@ EXPLANATIONS:
 FINAL REQUIREMENTS:
 - Return exactly ${count} valid MCQs.`;
 
-    // ✅ ربط الـ schema مع الـ SDK لضمان إرجاع JSON خالي من الأخطاء
     const model = ai.getGenerativeModel({
       model: "gemini-3.6-flash",
       generationConfig: {
@@ -140,7 +147,7 @@ FINAL REQUIREMENTS:
 
     const out = await model.generateContent(prompt);
     const jsonResult = JSON.parse(out.response.text());
-    
+
     res.json(jsonResult);
   } catch (e) {
     console.error(e);
