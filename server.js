@@ -102,6 +102,20 @@ async function generateWithRetry(model, prompt, retries = 3, delay = 2000) {
   }
 }
 
+// دالة استخراج وتنظيف النص وتحويله إلى JSON بأمان
+function parseJsonResponse(rawText) {
+  let cleaned = rawText.trim();
+  
+  // إزالة وسوم Markdown للـ JSON إن وجدت
+  if (cleaned.startsWith("```json")) {
+    cleaned = cleaned.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+  } else if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```\s*/, "").replace(/\s*```$/, "");
+  }
+
+  return JSON.parse(cleaned);
+}
+
 app.post("/api/generate-quiz", upload.single("file"), async (req, res) => {
   let p;
   try {
@@ -152,6 +166,7 @@ EXPLANATIONS:
 - Give a concise explanation for the correct answer using only source info.
 
 FINAL REQUIREMENTS:
+- Return valid JSON matching the requested schema.
 - Return exactly ${count} valid MCQs.`;
 
     const model = ai.getGenerativeModel({
@@ -167,10 +182,9 @@ FINAL REQUIREMENTS:
       out = await generateWithRetry(model, prompt);
     } catch (err) {
       if (err.message && err.message.includes("503")) {
-        console.warn("Flash model overloaded. Falling back to gemini-1.5-pro...");
-        // ✅ تم تعديل نموذج البديل إلى gemini-1.5-pro المعتمد
+        console.warn("Flash model overloaded. Falling back to gemini-1.5-flash...");
         const fallbackModel = ai.getGenerativeModel({
-          model: "gemini-1.5-pro",
+          model: "gemini-1.5-flash",
           generationConfig: {
             responseMimeType: "application/json",
             responseSchema: schema,
@@ -182,10 +196,12 @@ FINAL REQUIREMENTS:
       }
     }
 
-    const jsonResult = JSON.parse(out.response.text());
+    const rawText = out.response.text();
+    const jsonResult = parseJsonResponse(rawText);
+
     res.json(jsonResult);
   } catch (e) {
-    console.error(e);
+    console.error("Quiz generation error:", e);
     res.status(500).json({ error: e.message || "Generation failed." });
   } finally {
     if (p) fs.promises.unlink(p).catch(() => {});
