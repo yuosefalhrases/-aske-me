@@ -5,7 +5,7 @@ import path from "path";
 import JSZip from "jszip";
 import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const app=express();
 const upload=multer({dest:"uploads/",limits:{fileSize:100*1024*1024}});
