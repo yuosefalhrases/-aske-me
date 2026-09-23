@@ -7,7 +7,6 @@ import mammoth from "mammoth";
 import { createRequire } from "module";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// حل مشكلة استيراد pdf-parse في نظام ES Modules
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse");
 
@@ -85,6 +84,24 @@ const schema = {
   required: ["questions"],
 };
 
+// دالة المحاولة التلقائية عند وجود ضغط على السيرفر
+async function generateWithRetry(model, prompt, retries = 3, delay = 2000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await model.generateContent(prompt);
+    } catch (error) {
+      const is503 = error.message && error.message.includes("503");
+      if (is503 && i < retries - 1) {
+        console.log(`Server busy (503). Retrying in ${delay / 1000}s... (Attempt ${i + 1}/${retries})`);
+        await new Promise((res) => setTimeout(res, delay));
+        delay *= 1.5;
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+
 app.post("/api/generate-quiz", upload.single("file"), async (req, res) => {
   let p;
   try {
@@ -145,9 +162,27 @@ FINAL REQUIREMENTS:
       },
     });
 
-    const out = await model.generateContent(prompt);
-    const jsonResult = JSON.parse(out.response.text());
+    let out;
+    try {
+      out = await generateWithRetry(model, prompt);
+    } catch (err) {
+      // إذا استمر خطأ 503 بعد المحاولات، يتم التبديل تلقائياً للنموذج الاحتياطي
+      if (err.message && err.message.includes("503")) {
+        console.warn("Flash model is overloaded. Falling back to Pro model...");
+        const fallbackModel = ai.getGenerativeModel({
+          model: "gemini-3.6-pro",
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: schema,
+          },
+        });
+        out = await generateWithRetry(fallbackModel, prompt);
+      } else {
+        throw err;
+      }
+    }
 
+    const jsonResult = JSON.parse(out.response.text());
     res.json(jsonResult);
   } catch (e) {
     console.error(e);
