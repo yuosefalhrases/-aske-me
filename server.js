@@ -84,8 +84,8 @@ const schema = {
   required: ["questions"],
 };
 
-// دالة المحاولة التلقائية عند وجود ضغط على السيرفر
-async function generateWithRetry(model, prompt, retries = 3, delay = 2000) {
+// دالة المحاولة التلقائية مع زيادة وقت الانتظار عند وجود ضغط (503)
+async function generateWithRetry(model, prompt, retries = 4, delay = 2500) {
   for (let i = 0; i < retries; i++) {
     try {
       return await model.generateContent(prompt);
@@ -94,7 +94,7 @@ async function generateWithRetry(model, prompt, retries = 3, delay = 2000) {
       if (is503 && i < retries - 1) {
         console.log(`Server busy (503). Retrying in ${delay / 1000}s... (Attempt ${i + 1}/${retries})`);
         await new Promise((res) => setTimeout(res, delay));
-        delay *= 1.5;
+        delay *= 2; // مضاعفة وقت الانتظار
       } else {
         throw error;
       }
@@ -102,17 +102,14 @@ async function generateWithRetry(model, prompt, retries = 3, delay = 2000) {
   }
 }
 
-// دالة استخراج وتنظيف النص وتحويله إلى JSON بأمان
+// دالة معالجة واستخراج JSON بأمان
 function parseJsonResponse(rawText) {
   let cleaned = rawText.trim();
-  
-  // إزالة وسوم Markdown للـ JSON إن وجدت
   if (cleaned.startsWith("```json")) {
     cleaned = cleaned.replace(/^```json\s*/, "").replace(/\s*```$/, "");
   } else if (cleaned.startsWith("```")) {
     cleaned = cleaned.replace(/^```\s*/, "").replace(/\s*```$/, "");
   }
-
   return JSON.parse(cleaned);
 }
 
@@ -169,6 +166,7 @@ FINAL REQUIREMENTS:
 - Return valid JSON matching the requested schema.
 - Return exactly ${count} valid MCQs.`;
 
+    // استخدام النموذج المعتمد حصراً gemini-3.6-flash
     const model = ai.getGenerativeModel({
       model: "gemini-3.6-flash",
       generationConfig: {
@@ -177,25 +175,7 @@ FINAL REQUIREMENTS:
       },
     });
 
-    let out;
-    try {
-      out = await generateWithRetry(model, prompt);
-    } catch (err) {
-      if (err.message && err.message.includes("503")) {
-        console.warn("Flash model overloaded. Falling back to gemini-1.5-flash...");
-        const fallbackModel = ai.getGenerativeModel({
-          model: "gemini-1.5-flash",
-          generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: schema,
-          },
-        });
-        out = await generateWithRetry(fallbackModel, prompt);
-      } else {
-        throw err;
-      }
-    }
-
+    const out = await generateWithRetry(model, prompt);
     const rawText = out.response.text();
     const jsonResult = parseJsonResponse(rawText);
 
