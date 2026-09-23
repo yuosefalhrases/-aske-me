@@ -7,19 +7,29 @@ import mammoth from "mammoth";
 import { createRequire } from "module";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+// 1. معالجة توافقية مكتبة pdf-parse في نظام ES Modules
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse");
 
 const app = express();
-const upload = multer({ dest: "uploads/", limits: { fileSize: 100 * 1024 * 1024 } });
-const port = process.env.PORT || 3000;
-app.use(express.static("."));
 
+// إعداد التخزين المؤقت وحجم الملفات
+const upload = multer({
+  dest: "uploads/",
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB Max
+});
+
+const PORT = process.env.PORT || 3000;
+app.use(express.static("."));
+app.use(express.json());
+
+// 2. استخراج النصوص من ملفات PPTX
 async function pptxText(filePath) {
   const zip = await JSZip.loadAsync(await fs.promises.readFile(filePath));
   const names = Object.keys(zip.files)
     .filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n))
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  
   let out = [];
   for (const n of names) {
     const xml = await zip.files[n].async("text");
@@ -29,7 +39,8 @@ async function pptxText(filePath) {
   return out.join("\n");
 }
 
-async function extract(file) {
+// 3. محرك استخراج النصوص الموحد
+async function extractTextFromFile(file) {
   const ext = path.extname(file.originalname).toLowerCase();
 
   if (ext === ".pdf") {
@@ -43,12 +54,15 @@ async function extract(file) {
     return r.value;
   }
 
-  if (ext === ".pptx") return pptxText(file.path);
+  if (ext === ".pptx") {
+    return await pptxText(file.path);
+  }
 
-  throw new Error("This first online build supports PDF, DOCX and PPTX.");
+  throw new Error("نوع الملف غير مدعوم. يرجى رفع ملف PDF, DOCX, أو PPTX.");
 }
 
-const schema = {
+// 4. Schema المحددة والمضمونة للإرجاع
+const quizResponseSchema = {
   type: "object",
   properties: {
     questions: {
@@ -84,52 +98,102 @@ const schema = {
   required: ["questions"],
 };
 
-// دالة المحاولة التلقائية مع زيادة وقت الانتظار عند وجود ضغط (503)
-async function generateWithRetry(model, prompt, retries = 4, delay = 2500) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await model.generateContent(prompt);
-    } catch (error) {
-      const is503 = error.message && error.message.includes("503");
-      if (is503 && i < retries - 1) {
-        console.log(`Server busy (503). Retrying in ${delay / 1000}s... (Attempt ${i + 1}/${retries})`);
-        await new Promise((res) => setTimeout(res, delay));
-        delay *= 2; // مضاعفة وقت الانتظار
-      } else {
-        throw error;
+// 5. محرك التنفيذ المحمي المتقدم (Robust API Engine with Resilience)
+async function executeGeminiWithFallback(ai, prompt, initialModel = "gemini-3.6-flash") {
+  // ترتيب نماذج البدائل الرسمية والنشطة بحسب الكفاءة والتوفر
+  const fallbackModels = [
+    initialModel,
+    "gemini-2.5-flash",
+    "gemini-2.5-pro",
+    "gemini-2.0-flash"
+  ];
+
+  let lastError = null;
+
+  for (const modelName of fallbackModels) {
+    console.log(`[AI Engine] Attempting request with model: ${modelName}`);
+    
+    const model = ai.getGenerativeModel({
+      model: modelName,
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: quizResponseSchema,
+      },
+    });
+
+    // تنفيذ إعادة المحاولة مع Exponential Backoff & Jitter لكل نموذج
+    const maxRetries = 3;
+    let baseDelay = 1500;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await model.generateContent(prompt);
+        console.log(`[AI Engine] Successfully generated content using: ${modelName}`);
+        return result;
+      } catch (error) {
+        lastError = error;
+        const status = error.status || (error.message && error.message.match(/\[(\d{3})\b/)?.[1]);
+        const isTransientError = status === "503" || status === "429" || (error.message && error.message.includes("503"));
+
+        if (isTransientError && attempt < maxRetries) {
+          // إضافة عشوائية (Jitter) للوقت لتجنب حدوث الضغط الجماعي بنفس اللحظة
+          const jitter = Math.random() * 500;
+          const delay = baseDelay * Math.pow(2, attempt - 1) + jitter;
+          console.warn(`[AI Engine] Model ${modelName} busy (${status || '503'}). Retrying in ${Math.round(delay)}ms (Attempt ${attempt}/${maxRetries})...`);
+          await new Promise((res) => setTimeout(res, delay));
+        } else {
+          console.warn(`[AI Engine] Model ${modelName} failed on attempt ${attempt}. Switching model if available...`);
+          break; // الانتقال للنموذج التالي في القائمة عند الفشل المتكرر أو الأخطاء غير المؤقتة
+        }
       }
     }
   }
+
+  throw new Error(`فشلت جميع المحاولات والنماذج البديلة. الخطأ الأخير: ${lastError?.message || "Service Unavailable"}`);
 }
 
-// دالة معالجة واستخراج JSON بأمان
-function parseJsonResponse(rawText) {
-  let cleaned = rawText.trim();
-  if (cleaned.startsWith("```json")) {
-    cleaned = cleaned.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-  } else if (cleaned.startsWith("```")) {
-    cleaned = cleaned.replace(/^```\s*/, "").replace(/\s*```$/, "");
-  }
-  return JSON.parse(cleaned);
-}
-
-app.post("/api/generate-quiz", upload.single("file"), async (req, res) => {
-  let p;
+// 6. دالة تحليل واستخراج الـ JSON الآمن
+function safeParseJSON(rawText) {
   try {
-    if (!req.file) return res.status(400).json({ error: "No file uploaded." });
-    p = req.file.path;
+    let cleaned = rawText.trim();
+    if (cleaned.startsWith("```json")) {
+      cleaned = cleaned.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+    } else if (cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```\s*/, "").replace(/\s*```$/, "");
+    }
+    return JSON.parse(cleaned);
+  } catch (err) {
+    console.error("[JSON Parser Error] Raw text was:", rawText);
+    throw new Error("فشل تحويل استجابة الذكاء الاصطناعي إلى JSON. يرجى إعادة المحاولة.");
+  }
+}
+
+// 7. الـ API Endpoint الرئيسي
+app.post("/api/generate-quiz", upload.single("file"), async (req, res) => {
+  let uploadedFilePath = null;
+
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "لم يتم رفع أي ملف." });
+    }
+    uploadedFilePath = req.file.path;
 
     const count = Math.min(Math.max(parseInt(req.body.count || "10"), 1), 50);
     const difficulty = ["Easy", "Medium", "Hard"].includes(req.body.difficulty)
       ? req.body.difficulty
       : "Medium";
 
-    const material = (await extract(req.file)).slice(0, 180000);
-    if (material.trim().length < 100)
-      return res.status(400).json({ error: "Not enough readable text." });
+    // استخراج النص وتحديد سقف الحجم
+    const extractedContent = await extractTextFromFile(req.file);
+    const material = extractedContent.slice(0, 180000);
 
-    if (!process.env.GEMINI_API_KEY)
-      return res.status(500).json({ error: "Server AI key is not configured." });
+    if (material.trim().length < 100) {
+      return res.status(400).json({ error: "الملف المرفوع لا يحتوي على نص كافٍ للتحليل." });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: "مفتاح GEMINI_API_KEY غير مضاف في إعدادات البيئة (Render Environment Variables)." });
+    }
 
     const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -166,27 +230,33 @@ FINAL REQUIREMENTS:
 - Return valid JSON matching the requested schema.
 - Return exactly ${count} valid MCQs.`;
 
-    // استخدام النموذج المعتمد حصراً gemini-3.6-flash
-    const model = ai.getGenerativeModel({
-      model: "gemini-3.6-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: schema,
-      },
+    // استدعاء المحرك المحمي
+    const apiResponse = await executeGeminiWithFallback(ai, prompt, "gemini-3.6-flash");
+    const jsonOutput = safeParseJSON(apiResponse.response.text());
+
+    return res.json(jsonOutput);
+
+  } catch (error) {
+    console.error("[Quiz Route Error]:", error);
+    return res.status(500).json({
+      error: error.message || "حدث خطأ غير متوقع أثناء إنشاء الاختبار.",
     });
-
-    const out = await generateWithRetry(model, prompt);
-    const rawText = out.response.text();
-    const jsonResult = parseJsonResponse(rawText);
-
-    res.json(jsonResult);
-  } catch (e) {
-    console.error("Quiz generation error:", e);
-    res.status(500).json({ error: e.message || "Generation failed." });
   } finally {
-    if (p) fs.promises.unlink(p).catch(() => {});
+    // التنظيف الفوري للملفات المرفوعة لمنع امتلاء القرص في Render
+    if (uploadedFilePath) {
+      fs.promises.unlink(uploadedFilePath).catch((err) => {
+        console.error("فشل حذف الملف المؤقت:", err);
+      });
+    }
   }
 });
 
-app.get("/api/health", (req, res) => res.json({ ok: true }));
-app.listen(port, () => console.log(`aske me running on port ${port}`));
+// Health check endpoint لـ Render
+app.get("/api/health", (req, res) => res.json({ status: "healthy", timestamp: new Date() }));
+
+// تشغيل السيرفر
+app.listen(PORT, () => {
+  console.log(`=================================`);
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`=================================`);
+});
