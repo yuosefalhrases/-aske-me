@@ -7,23 +7,19 @@ import mammoth from "mammoth";
 import { createRequire } from "module";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// 1. معالجة توافقية مكتبة pdf-parse في نظام ES Modules
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse");
 
 const app = express();
-
-// إعداد التخزين المؤقت وحجم الملفات
 const upload = multer({
   dest: "uploads/",
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB Max
+  limits: { fileSize: 100 * 1024 * 1024 },
 });
 
 const PORT = process.env.PORT || 3000;
 app.use(express.static("."));
 app.use(express.json());
 
-// 2. استخراج النصوص من ملفات PPTX
 async function pptxText(filePath) {
   const zip = await JSZip.loadAsync(await fs.promises.readFile(filePath));
   const names = Object.keys(zip.files)
@@ -39,7 +35,6 @@ async function pptxText(filePath) {
   return out.join("\n");
 }
 
-// 3. محرك استخراج النصوص الموحد
 async function extractTextFromFile(file) {
   const ext = path.extname(file.originalname).toLowerCase();
 
@@ -61,7 +56,6 @@ async function extractTextFromFile(file) {
   throw new Error("نوع الملف غير مدعوم. يرجى رفع ملف PDF, DOCX, أو PPTX.");
 }
 
-// 4. Schema المحددة والمضمونة للإرجاع
 const quizResponseSchema = {
   type: "object",
   properties: {
@@ -98,21 +92,20 @@ const quizResponseSchema = {
   required: ["questions"],
 };
 
-// 5. محرك التنفيذ المحمي المتقدم (Robust API Engine with Resilience)
-async function executeGeminiWithFallback(ai, prompt, initialModel = "gemini-3.6-flash") {
-  // ترتيب نماذج البدائل الرسمية والنشطة بحسب الكفاءة والتوفر
-  const fallbackModels = [
-    initialModel,
-    "gemini-2.5-flash",
-    "gemini-2.5-pro",
-    "gemini-2.0-flash"
+// محرك التنفيذ المحمي المعتمد فقط على النماذج الرسمية النشطة
+async function executeGeminiWithFallback(ai, prompt) {
+  // النماذج النشطة والمدعومة رسمياً حالياً
+  const activeModels = [
+    "gemini-3.6-flash",
+    "gemini-3.6-pro",
+    "gemini-flash-latest"
   ];
 
   let lastError = null;
 
-  for (const modelName of fallbackModels) {
-    console.log(`[AI Engine] Attempting request with model: ${modelName}`);
-    
+  for (const modelName of activeModels) {
+    console.log(`[AI Engine] Trying active model: ${modelName}`);
+
     const model = ai.getGenerativeModel({
       model: modelName,
       generationConfig: {
@@ -121,38 +114,42 @@ async function executeGeminiWithFallback(ai, prompt, initialModel = "gemini-3.6-
       },
     });
 
-    // تنفيذ إعادة المحاولة مع Exponential Backoff & Jitter لكل نموذج
     const maxRetries = 3;
-    let baseDelay = 1500;
+    let baseDelay = 2000;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const result = await model.generateContent(prompt);
-        console.log(`[AI Engine] Successfully generated content using: ${modelName}`);
+        console.log(`[AI Engine] Success with model: ${modelName}`);
         return result;
       } catch (error) {
         lastError = error;
-        const status = error.status || (error.message && error.message.match(/\[(\d{3})\b/)?.[1]);
-        const isTransientError = status === "503" || status === "429" || (error.message && error.message.includes("503"));
+        const errMsg = error.message || "";
 
-        if (isTransientError && attempt < maxRetries) {
-          // إضافة عشوائية (Jitter) للوقت لتجنب حدوث الضغط الجماعي بنفس اللحظة
+        // إذا كان النموذج غير موجود (404)، اتجه فوراً للنموذج التالي بدون محاولات تكرارية
+        if (errMsg.includes("404") || errMsg.includes("not found")) {
+          console.warn(`[AI Engine] Model ${modelName} returned 404 (Not Found). Skipping...`);
+          break;
+        }
+
+        const is503 = errMsg.includes("503") || errMsg.includes("Service Unavailable") || errMsg.includes("429");
+
+        if (is503 && attempt < maxRetries) {
           const jitter = Math.random() * 500;
           const delay = baseDelay * Math.pow(2, attempt - 1) + jitter;
-          console.warn(`[AI Engine] Model ${modelName} busy (${status || '503'}). Retrying in ${Math.round(delay)}ms (Attempt ${attempt}/${maxRetries})...`);
+          console.warn(`[AI Engine] ${modelName} is busy (503/429). Retrying in ${Math.round(delay)}ms (Attempt ${attempt}/${maxRetries})...`);
           await new Promise((res) => setTimeout(res, delay));
         } else {
-          console.warn(`[AI Engine] Model ${modelName} failed on attempt ${attempt}. Switching model if available...`);
-          break; // الانتقال للنموذج التالي في القائمة عند الفشل المتكرر أو الأخطاء غير المؤقتة
+          console.warn(`[AI Engine] Model ${modelName} failed on attempt ${attempt}. Transitioning to next model...`);
+          break;
         }
       }
     }
   }
 
-  throw new Error(`فشلت جميع المحاولات والنماذج البديلة. الخطأ الأخير: ${lastError?.message || "Service Unavailable"}`);
+  throw new Error(`تعذر إنشاء الاختبار حالياً بسبب ضغط عالٍ على خوادم الذكاء الاصطناعي. يرجى إعادة المحاولة بعد بضع ثوانٍ. (${lastError?.message || 'Server Busy'})`);
 }
 
-// 6. دالة تحليل واستخراج الـ JSON الآمن
 function safeParseJSON(rawText) {
   try {
     let cleaned = rawText.trim();
@@ -164,11 +161,10 @@ function safeParseJSON(rawText) {
     return JSON.parse(cleaned);
   } catch (err) {
     console.error("[JSON Parser Error] Raw text was:", rawText);
-    throw new Error("فشل تحويل استجابة الذكاء الاصطناعي إلى JSON. يرجى إعادة المحاولة.");
+    throw new Error("حدث خطأ في تحويل استجابة AI إلى JSON.");
   }
 }
 
-// 7. الـ API Endpoint الرئيسي
 app.post("/api/generate-quiz", upload.single("file"), async (req, res) => {
   let uploadedFilePath = null;
 
@@ -183,16 +179,15 @@ app.post("/api/generate-quiz", upload.single("file"), async (req, res) => {
       ? req.body.difficulty
       : "Medium";
 
-    // استخراج النص وتحديد سقف الحجم
     const extractedContent = await extractTextFromFile(req.file);
     const material = extractedContent.slice(0, 180000);
 
     if (material.trim().length < 100) {
-      return res.status(400).json({ error: "الملف المرفوع لا يحتوي على نص كافٍ للتحليل." });
+      return res.status(400).json({ error: "الملف لا يحتوي على نص كافٍ." });
     }
 
     if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: "مفتاح GEMINI_API_KEY غير مضاف في إعدادات البيئة (Render Environment Variables)." });
+      return res.status(500).json({ error: "مفتاح GEMINI_API_KEY غير مضاف في بيئة العمل." });
     }
 
     const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -230,8 +225,7 @@ FINAL REQUIREMENTS:
 - Return valid JSON matching the requested schema.
 - Return exactly ${count} valid MCQs.`;
 
-    // استدعاء المحرك المحمي
-    const apiResponse = await executeGeminiWithFallback(ai, prompt, "gemini-3.6-flash");
+    const apiResponse = await executeGeminiWithFallback(ai, prompt);
     const jsonOutput = safeParseJSON(apiResponse.response.text());
 
     return res.json(jsonOutput);
@@ -242,7 +236,6 @@ FINAL REQUIREMENTS:
       error: error.message || "حدث خطأ غير متوقع أثناء إنشاء الاختبار.",
     });
   } finally {
-    // التنظيف الفوري للملفات المرفوعة لمنع امتلاء القرص في Render
     if (uploadedFilePath) {
       fs.promises.unlink(uploadedFilePath).catch((err) => {
         console.error("فشل حذف الملف المؤقت:", err);
@@ -251,12 +244,8 @@ FINAL REQUIREMENTS:
   }
 });
 
-// Health check endpoint لـ Render
 app.get("/api/health", (req, res) => res.json({ status: "healthy", timestamp: new Date() }));
 
-// تشغيل السيرفر
 app.listen(PORT, () => {
-  console.log(`=================================`);
   console.log(`Server is running on port ${PORT}`);
-  console.log(`=================================`);
 });
