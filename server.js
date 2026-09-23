@@ -166,11 +166,11 @@ FINAL REQUIREMENTS:
     try {
       out = await generateWithRetry(model, prompt);
     } catch (err) {
-      // إذا استمر خطأ 503 بعد المحاولات، يتم التبديل تلقائياً للنموذج الاحتياطي
       if (err.message && err.message.includes("503")) {
-        console.warn("Flash model is overloaded. Falling back to Pro model...");
+        console.warn("Flash model overloaded. Falling back to gemini-1.5-pro...");
+        // ✅ تم تعديل نموذج البديل إلى gemini-1.5-pro المعتمد
         const fallbackModel = ai.getGenerativeModel({
-          model: "gemini-3.6-pro",
+          model: "gemini-1.5-pro",
           generationConfig: {
             responseMimeType: "application/json",
             responseSchema: schema,
