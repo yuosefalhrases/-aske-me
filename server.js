@@ -8,7 +8,10 @@ import { createRequire } from "module";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const require = createRequire(import.meta.url);
-const pdf = require("pdf-parse");
+
+// إصلاح استدعاء pdf-parse ليتوافق مع ES Modules
+const pdfModule = require("pdf-parse");
+const pdf = typeof pdfModule === "function" ? pdfModule : pdfModule.default;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -75,6 +78,9 @@ async function extractContentFromFile(file) {
 
   if (ext === ".pdf") {
     const dataBuffer = await fs.promises.readFile(file.path);
+    if (typeof pdf !== "function") {
+      throw new Error("مكتبة pdf-parse غير معرفة كـ Function بشكل صحيح.");
+    }
     const r = await pdf(dataBuffer);
     text = r.text;
   } else if (ext === ".docx") {
@@ -128,7 +134,7 @@ const quizResponseSchema = {
   required: ["questions"],
 };
 
-// محرك التنفيذ المحمي والمعالج للسرعة والبدائل (تم تصحيح أسماء النماذج)
+// محرك التنفيذ المحمي
 async function executeGeminiWithFallback(ai, contents) {
   const activeModels = [
     "gemini-1.5-flash",
@@ -243,7 +249,6 @@ RULES:
 - Provide 4 options per question with exactly 1 correct answer (0-indexed).
 - Return valid JSON matching the schema.`;
 
-    // تجميع النص مع الصور المدعومة وإرسالها للنموذج
     const contents = [promptText, ...images];
 
     const apiResponse = await executeGeminiWithFallback(ai, contents);
