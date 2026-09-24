@@ -9,7 +9,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const require = createRequire(import.meta.url);
 
-// إصلاح استدقاء pdf-parse ليتوافق مع ES Modules وقراءة ملفات الـ PDF بدون أخطاء
+// إصلاح استدعاء pdf-parse ليتوافق مع ES Modules وقراءة ملفات الـ PDF بدون أخطاء
 const pdfModule = require("pdf-parse");
 const pdf = typeof pdfModule === "function" ? pdfModule : pdfModule.default;
 
@@ -136,9 +136,11 @@ const quizResponseSchema = {
 
 // محرك التنفيذ المحمي والمعالج بالنماذج الرسمية المعتمدة
 async function executeGeminiWithFallback(ai, contents) {
+  // قائمة النماذج المستقرة بالترتيب
   const activeModels = [
     "gemini-1.5-flash",
-    "gemini-1.5-pro"
+    "gemini-2.0-flash",
+    "gemini-1.5-pro-latest"
   ];
 
   let lastError = null;
@@ -146,45 +148,30 @@ async function executeGeminiWithFallback(ai, contents) {
   for (const modelName of activeModels) {
     console.log(`[AI Engine] Executing with active model: ${modelName}`);
 
-    const model = ai.getGenerativeModel({
-      model: modelName,
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: quizResponseSchema,
-        temperature: 0.2,
-      },
-    });
+    try {
+      const model = ai.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: quizResponseSchema,
+          temperature: 0.2,
+        },
+      });
 
-    const maxRetries = 2;
-    let baseDelay = 1200;
+      const result = await model.generateContent(contents);
+      console.log(`[AI Engine] Success response received from: ${modelName}`);
+      return result;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const result = await model.generateContent(contents);
-        console.log(`[AI Engine] Fast response received from: ${modelName}`);
-        return result;
-      } catch (error) {
-        lastError = error;
-        const errMsg = error.message || "";
+    } catch (error) {
+      lastError = error;
+      const errMsg = error.message || "";
 
-        console.error(`[AI Error - ${modelName} - Attempt ${attempt}]:`, errMsg);
+      console.error(`[AI Error - ${modelName}]:`, errMsg);
 
-        if (errMsg.includes("404") || errMsg.includes("not found")) {
-          console.warn(`[AI Engine] Model ${modelName} returned 404. Skipping...`);
-          break;
-        }
-
-        const is503 = errMsg.includes("503") || errMsg.includes("Service Unavailable") || errMsg.includes("429");
-
-        if (is503 && attempt < maxRetries) {
-          const jitter = Math.random() * 300;
-          const delay = baseDelay * Math.pow(2, attempt - 1) + jitter;
-          console.warn(`[AI Engine] ${modelName} busy. Retrying in ${Math.round(delay)}ms...`);
-          await new Promise((res) => setTimeout(res, delay));
-        } else {
-          console.warn(`[AI Engine] Model ${modelName} failed on attempt ${attempt}.`);
-          break;
-        }
+      // إذا تعذر الوصول للنموذج أو كان غير مدعوم (404)، ينتقل تلقائياً للنموذج التالي
+      if (errMsg.includes("404") || errMsg.includes("not found")) {
+        console.warn(`[AI Engine] Model ${modelName} not found. Skipping...`);
+        continue;
       }
     }
   }
