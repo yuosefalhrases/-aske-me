@@ -238,7 +238,7 @@ if (window.supabase && SUPABASE_PUBLISHABLE_KEY && !SUPABASE_PUBLISHABLE_KEY.inc
 
 <script>
 const $ = id => document.getElementById(id);
-let questions = [], answers = [], current = 0;
+let questions = [], answers = {}, current = 0;
 let currentExamId = null;
 
 function show(id) {
@@ -246,13 +246,11 @@ function show(id) {
   const target = $(id);
   if (target) target.classList.add("active");
   
-  // التحكم بظهور زر Home في شريط التنقل العلوي
   const goHomeBtn = $("goHomeBtn");
   if (goHomeBtn) {
     goHomeBtn.style.display = (id === "quiz" || id === "result") ? "inline-block" : "none";
   }
 
-  // حفظ اسم الشاشة الحالية
   if (id === "quiz" || id === "result") {
     localStorage.setItem("askme_active_screen", id);
   } else if (id === "home") {
@@ -264,6 +262,23 @@ function show(id) {
 
 function escapeHtml(v) {
   return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+/* ---------- Safe JSON Parser ---------- */
+function safeJsonParse(str) {
+  if (!str) return null;
+  try {
+    let cleaned = str.trim();
+    if (cleaned.startsWith("```json")) {
+      cleaned = cleaned.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+    } else if (cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```\s*/, "").replace(/\s*```$/, "");
+    }
+    return JSON.parse(cleaned);
+  } catch (e) {
+    console.error("Safe JSON Parsing Failed:", e);
+    return null;
+  }
 }
 
 /* ---------- LocalStorage Management ---------- */
@@ -282,9 +297,12 @@ function restoreQuizFromStorage() {
   const activeScreen = localStorage.getItem("askme_active_screen");
 
   if (savedQuestions && activeScreen) {
-    try {
-      questions = JSON.parse(savedQuestions);
-      answers = savedAnswers ? JSON.parse(savedAnswers) : [];
+    const parsedQuestions = safeJsonParse(savedQuestions);
+    const parsedAnswers = safeJsonParse(savedAnswers);
+
+    if (parsedQuestions && Array.isArray(parsedQuestions)) {
+      questions = parsedQuestions;
+      answers = parsedAnswers || {};
       current = savedCurrent ? parseInt(savedCurrent, 10) : 0;
 
       if (activeScreen === "quiz") {
@@ -295,8 +313,7 @@ function restoreQuizFromStorage() {
         finish();
         return true;
       }
-    } catch(e) {
-      console.error("Error restoring quiz state:", e);
+    } else {
       clearQuizStorage();
     }
   }
@@ -304,7 +321,7 @@ function restoreQuizFromStorage() {
 }
 
 function clearQuizStorage() {
-  questions = []; answers = []; current = 0; currentExamId = null;
+  questions = []; answers = {}; current = 0; currentExamId = null;
   localStorage.removeItem("askme_questions");
   localStorage.removeItem("askme_answers");
   localStorage.removeItem("askme_current");
@@ -318,9 +335,15 @@ function handleHomeClick() {
     }
   }
   clearQuizStorage();
-  if ($("file")) $("file").value = "";
+  
+  // إعادة خيارات الرفع لوضعها الطبيعي
+  const fileInput = $("file");
+  if (fileInput) fileInput.value = "";
   if ($("fileBox")) $("fileBox").classList.remove("show");
-  if ($("generate")) $("generate").disabled = true;
+  if ($("generate")) {
+    $("generate").disabled = true;
+    $("generate").textContent = "Generate Quiz";
+  }
   if ($("status")) $("status").textContent = "Choose a file to begin.";
   show("home");
 }
@@ -329,7 +352,6 @@ function handleHomeClick() {
 $("backFromLogin").onclick = () => show("home");
 $("backFromSignup").onclick = () => show("home");
 $("dashboardHome").onclick = () => show("home");
-if ($("goHomeBtn")) $("goHomeBtn").onclick = handleHomeClick;
 if ($("mainLogo")) $("mainLogo").onclick = handleHomeClick;
 
 function authReady() { return !!supabaseClient; }
@@ -348,23 +370,24 @@ function missingSupabaseMessage() {
 /* ---------- Auth UI ---------- */
 function renderAuth(user) {
   const area = $("authArea");
-  const homeBtnHtml = '<button id="goHomeBtn" class="auth-btn" type="button" style="display:' + (localStorage.getItem("askme_active_screen") ? "inline-block" : "none") + ';">Home</button>';
+  const isQuizActive = !!localStorage.getItem("askme_active_screen");
   
   if (!user) {
-    area.innerHTML = homeBtnHtml + '<button id="loginBtn" class="auth-btn" type="button">Log in</button><button id="signupBtn" class="auth-btn primary-auth" type="button">Sign up</button>';
+    area.innerHTML = '<button id="goHomeBtn" class="auth-btn" type="button" style="display:' + (isQuizActive ? "inline-block" : "none") + ';">Home</button><button id="loginBtn" class="auth-btn" type="button">Log in</button><button id="signupBtn" class="auth-btn primary-auth" type="button">Sign up</button>';
     $("loginBtn").onclick = () => show("login");
     $("signupBtn").onclick = () => show("signup");
-    if ($("goHomeBtn")) $("goHomeBtn").onclick = handleHomeClick;
-    return;
+  } else {
+    area.innerHTML = '<button id="goHomeBtn" class="auth-btn" type="button" style="display:' + (isQuizActive ? "inline-block" : "none") + ';">Home</button><span class="user-email">' + escapeHtml(user.email || "Account") + '</span><button id="dashboardBtn" class="auth-btn" type="button">My AskMe</button><button id="logoutBtn" class="auth-btn" type="button">Log out</button>';
+    $("dashboardBtn").onclick = () => { loadDashboard(); show("dashboard"); };
+    $("logoutBtn").onclick = async () => {
+      if (supabaseClient) await supabaseClient.auth.signOut();
+      show("home");
+    };
   }
-  area.innerHTML = homeBtnHtml + '<span class="user-email">' + escapeHtml(user.email || "Account") + '</span><button id="dashboardBtn" class="auth-btn" type="button">My AskMe</button><button id="logoutBtn" class="auth-btn" type="button">Log out</button>';
-  
-  if ($("goHomeBtn")) $("goHomeBtn").onclick = handleHomeClick;
-  $("dashboardBtn").onclick = () => { loadDashboard(); show("dashboard"); };
-  $("logoutBtn").onclick = async () => {
-    if (supabaseClient) await supabaseClient.auth.signOut();
-    show("home");
-  };
+
+  // ربط الأيفنت بشكل إجباري بعد كل إعادة بناء للهيدر
+  const goHomeBtn = $("goHomeBtn");
+  if (goHomeBtn) goHomeBtn.onclick = handleHomeClick;
 }
 
 async function initAuth() {
@@ -432,6 +455,7 @@ $("generate").onclick = async () => {
   if (!f) return;
 
   $("generate").disabled = true;
+  $("generate").textContent = "Generating...";
   $("status").textContent = "Reading your material and generating questions…";
 
   const fd = new FormData();
@@ -441,19 +465,27 @@ $("generate").onclick = async () => {
 
   try {
     const r = await fetch("/api/generate-quiz", { method: "POST", body: fd });
-    const data = await r.json();
+    const rawText = await r.text();
+    
+    const data = safeJsonParse(rawText);
+    if (!data) {
+      throw new Error("Server response was not valid JSON. Please try again.");
+    }
+
     if (!r.ok) throw new Error(data.error || "Generation failed");
     questions = data.questions || [];
     if (!questions.length) throw new Error("No questions returned");
     
-    answers = []; current = 0; currentExamId = null;
+    answers = {}; current = 0; currentExamId = null;
     saveQuizToStorage();
     
     $("qDiff").textContent = $("difficulty").value;
     show("quiz"); render();
   } catch(e) {
     $("status").textContent = "Error: " + e.message;
+  } finally {
     $("generate").disabled = false;
+    $("generate").textContent = "Generate Quiz";
   }
 };
 
@@ -478,7 +510,7 @@ function render() {
       b.classList.add("selected"); 
       answers[current] = k; 
       $("next").disabled = false;
-      saveQuizToStorage(); // حفظ عند اختيار الإجابة
+      saveQuizToStorage();
     };
     $("opts").appendChild(b);
   });
@@ -634,7 +666,10 @@ $("restart").onclick = () => {
   clearQuizStorage();
   if ($("file")) $("file").value = ""; 
   if ($("fileBox")) $("fileBox").classList.remove("show"); 
-  if ($("generate")) $("generate").disabled = true;
+  if ($("generate")) {
+    $("generate").disabled = true;
+    $("generate").textContent = "Generate Quiz";
+  }
   if ($("status")) $("status").textContent = "Choose a file to begin.";
   show("home");
 };
