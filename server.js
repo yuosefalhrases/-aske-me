@@ -4,20 +4,8 @@ import fs from "fs";
 import path from "path";
 import JSZip from "jszip";
 import mammoth from "mammoth";
-import { createRequire } from "module";
+import { PDFParse } from "pdf-parse";
 import { GoogleGenAI } from "@google/genai";
-
-const require = createRequire(import.meta.url);
-
-// ===============================
-// PDF
-// ===============================
-
-const pdfModule = require("pdf-parse");
-const pdf =
-  typeof pdfModule === "function"
-    ? pdfModule
-    : pdfModule.default;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -147,15 +135,15 @@ async function extractContentFromFile(file) {
     const dataBuffer =
       await fs.promises.readFile(file.path);
 
-    if (typeof pdf !== "function") {
-      throw new Error(
-        "مكتبة pdf-parse غير معرفة بشكل صحيح."
-      );
-    }
+    const parser = new PDFParse({
+      data: dataBuffer,
+    });
 
-    const result = await pdf(dataBuffer);
+    const result = await parser.getText();
 
     text = result.text || "";
+
+    await parser.destroy();
   }
 
   else if (ext === ".docx") {
