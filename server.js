@@ -9,9 +9,15 @@ import { GoogleGenAI } from "@google/genai";
 
 const require = createRequire(import.meta.url);
 
+// ===============================
 // PDF
+// ===============================
+
 const pdfModule = require("pdf-parse");
-const pdf = typeof pdfModule === "function" ? pdfModule : pdfModule.default;
+const pdf =
+  typeof pdfModule === "function"
+    ? pdfModule
+    : pdfModule.default;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,7 +53,7 @@ async function extractImagesFromZip(filePath) {
         fileName.startsWith("word/media/")
     );
 
-    // أول 5 صور فقط لتجنب حجم طلب كبير
+    // أقصى 5 صور
     for (const fileName of mediaFiles.slice(0, 5)) {
       const file = zip.files[fileName];
 
@@ -99,7 +105,9 @@ async function pptxText(filePath) {
       /^ppt\/slides\/slide\d+\.xml$/.test(name)
     )
     .sort((a, b) =>
-      a.localeCompare(b, undefined, { numeric: true })
+      a.localeCompare(b, undefined, {
+        numeric: true,
+      })
     );
 
   const output = [];
@@ -108,7 +116,9 @@ async function pptxText(filePath) {
     const xml = await zip.files[name].async("text");
 
     const textParts = [
-      ...xml.matchAll(/<a:t>([\s\S]*?)<\/a:t>/g),
+      ...xml.matchAll(
+        /<a:t>([\s\S]*?)<\/a:t>/g
+      ),
     ].map((match) => match[1]);
 
     if (textParts.length) {
@@ -134,7 +144,8 @@ async function extractContentFromFile(file) {
   let images = [];
 
   if (ext === ".pdf") {
-    const dataBuffer = await fs.promises.readFile(file.path);
+    const dataBuffer =
+      await fs.promises.readFile(file.path);
 
     if (typeof pdf !== "function") {
       throw new Error(
@@ -148,19 +159,22 @@ async function extractContentFromFile(file) {
   }
 
   else if (ext === ".docx") {
-    const result = await mammoth.extractRawText({
-      path: file.path,
-    });
+    const result =
+      await mammoth.extractRawText({
+        path: file.path,
+      });
 
     text = result.value || "";
 
-    images = await extractImagesFromZip(file.path);
+    images =
+      await extractImagesFromZip(file.path);
   }
 
   else if (ext === ".pptx") {
     text = await pptxText(file.path);
 
-    images = await extractImagesFromZip(file.path);
+    images =
+      await extractImagesFromZip(file.path);
   }
 
   else {
@@ -255,7 +269,34 @@ const quizResponseSchema = {
 };
 
 // ===============================
-// Gemini
+// Sleep helper
+// ===============================
+
+function sleep(ms) {
+  return new Promise((resolve) =>
+    setTimeout(resolve, ms)
+  );
+}
+
+// ===============================
+// Check if error is temporary
+// ===============================
+
+function isTemporaryGeminiError(error) {
+  const message =
+    error?.message?.toLowerCase() || "";
+
+  return (
+    message.includes("503") ||
+    message.includes("unavailable") ||
+    message.includes("high demand") ||
+    message.includes("overloaded") ||
+    message.includes("temporarily")
+  );
+}
+
+// ===============================
+// Gemini with retry + fallback
 // ===============================
 
 async function executeGemini(contents) {
@@ -269,32 +310,92 @@ async function executeGemini(contents) {
     apiKey: process.env.GEMINI_API_KEY,
   });
 
-  // النموذج الحالي
-  const modelName = "gemini-3.6-flash";
+  // النموذج الأساسي + نموذج احتياطي
+  const models = [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+  ];
 
-  console.log(
-    `[AI Engine] Using model: ${modelName}`
+  let lastError = null;
+
+  for (const modelName of models) {
+    console.log(
+      `[AI Engine] Trying model: ${modelName}`
+    );
+
+    // 3 محاولات لكل نموذج
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        console.log(
+          `[AI Engine] Attempt ${attempt}/3 - ${modelName}`
+        );
+
+        const response =
+          await ai.models.generateContent({
+            model: modelName,
+
+            contents,
+
+            config: {
+              responseMimeType:
+                "application/json",
+
+              responseSchema:
+                quizResponseSchema,
+            },
+          });
+
+        console.log(
+          `[AI Engine] Success with ${modelName}`
+        );
+
+        return response;
+      }
+
+      catch (error) {
+        lastError = error;
+
+        console.error(
+          `[AI Error - ${modelName} - Attempt ${attempt}]:`,
+          error.message
+        );
+
+        // إذا الخطأ مؤقت، انتظر ثم أعد المحاولة
+        if (isTemporaryGeminiError(error)) {
+          if (attempt < 3) {
+            const waitTime =
+              attempt === 1
+                ? 2000
+                : attempt === 2
+                ? 5000
+                : 8000;
+
+            console.log(
+              `[AI Engine] Temporary error. Waiting ${waitTime}ms...`
+            );
+
+            await sleep(waitTime);
+
+            continue;
+          }
+
+          // بعد 3 محاولات ننتقل للنموذج التالي
+          console.warn(
+            `[AI Engine] ${modelName} is still unavailable. Trying fallback model...`
+          );
+
+          break;
+        }
+
+        // أخطاء غير مؤقتة لا داعي لإعادة المحاولة
+        throw error;
+      }
+    }
+  }
+
+  throw new Error(
+    `تعذر إنشاء الاختبار حاليًا بسبب ضغط مؤقت على خدمة الذكاء الاصطناعي. يرجى المحاولة مرة أخرى بعد قليل.`
   );
-
-  const response = await ai.models.generateContent({
-    model: modelName,
-
-    contents,
-
-    config: {
-      temperature: 0.2,
-
-      responseMimeType: "application/json",
-
-      responseSchema: quizResponseSchema,
-    },
-  });
-
-  console.log(
-    "[AI Engine] Response received successfully."
-  );
-
-  return response;
 }
 
 // ===============================
@@ -310,15 +411,17 @@ function safeParseJSON(rawText) {
 
   let cleaned = rawText.trim();
 
-  // إزالة Markdown fences إذا ظهرت
   cleaned = cleaned
     .replace(/^```json\s*/i, "")
     .replace(/^```\s*/i, "")
     .replace(/\s*```$/i, "")
     .trim();
 
-  const firstOpen = cleaned.indexOf("{");
-  const lastClose = cleaned.lastIndexOf("}");
+  const firstOpen =
+    cleaned.indexOf("{");
+
+  const lastClose =
+    cleaned.lastIndexOf("}");
 
   if (
     firstOpen !== -1 &&
@@ -333,7 +436,9 @@ function safeParseJSON(rawText) {
 
   try {
     return JSON.parse(cleaned);
-  } catch (error) {
+  }
+
+  catch (error) {
     console.error(
       "[JSON Parse Error]",
       cleaned
@@ -362,11 +467,13 @@ app.post(
 
       if (!req.file) {
         return res.status(400).json({
-          error: "لم يتم رفع أي ملف.",
+          error:
+            "لم يتم رفع أي ملف.",
         });
       }
 
-      uploadedFilePath = req.file.path;
+      uploadedFilePath =
+        req.file.path;
 
       // ---------------------------
       // Quiz count
@@ -374,7 +481,9 @@ app.post(
 
       const count = Math.min(
         Math.max(
-          parseInt(req.body.count || "10"),
+          parseInt(
+            req.body.count || "10"
+          ),
           1
         ),
         50
@@ -388,7 +497,9 @@ app.post(
         "Easy",
         "Medium",
         "Hard",
-      ].includes(req.body.difficulty)
+      ].includes(
+        req.body.difficulty
+      )
         ? req.body.difficulty
         : "Medium";
 
@@ -403,10 +514,14 @@ app.post(
       const {
         text,
         images,
-      } = await extractContentFromFile(req.file);
+      } =
+        await extractContentFromFile(
+          req.file
+        );
 
-      // حد أقصى للنص المرسل
-      const material = text.slice(0, 45000);
+      // أقصى حد للنص
+      const material =
+        text.slice(0, 45000);
 
       console.log(
         `[File] Extracted text: ${material.length} chars`
@@ -434,7 +549,9 @@ app.post(
       // API key
       // ---------------------------
 
-      if (!process.env.GEMINI_API_KEY) {
+      if (
+        !process.env.GEMINI_API_KEY
+      ) {
         return res.status(500).json({
           error:
             "مفتاح GEMINI_API_KEY غير مضاف في إعدادات البيئة.",
@@ -488,14 +605,18 @@ Return ONLY valid JSON matching the provided schema.
       const contents = [
         {
           role: "user",
+
           parts: [
             {
               text: promptText,
             },
 
-            ...images.map((image) => ({
-              inlineData: image.inlineData,
-            })),
+            ...images.map(
+              (image) => ({
+                inlineData:
+                  image.inlineData,
+              })
+            ),
           ],
         },
       ];
@@ -505,13 +626,16 @@ Return ONLY valid JSON matching the provided schema.
       // ---------------------------
 
       const apiResponse =
-        await executeGemini(contents);
+        await executeGemini(
+          contents
+        );
 
       // ---------------------------
       // Read response
       // ---------------------------
 
-      const rawText = apiResponse.text;
+      const rawText =
+        apiResponse.text;
 
       console.log(
         "[AI Engine] Raw response length:",
@@ -519,22 +643,41 @@ Return ONLY valid JSON matching the provided schema.
       );
 
       const jsonOutput =
-        safeParseJSON(rawText);
+        safeParseJSON(
+          rawText
+        );
 
       // ---------------------------
-      // Final validation
+      // Validate output
       // ---------------------------
 
       if (
         !jsonOutput ||
-        !Array.isArray(jsonOutput.questions)
+        !Array.isArray(
+          jsonOutput.questions
+        )
       ) {
         throw new Error(
           "الذكاء الاصطناعي لم يُرجع قائمة أسئلة صحيحة."
         );
       }
 
-      return res.json(jsonOutput);
+      // ---------------------------
+      // Make sure question count
+      // ---------------------------
+
+      if (
+        jsonOutput.questions.length !==
+        count
+      ) {
+        console.warn(
+          `[AI Warning] Requested ${count} questions but received ${jsonOutput.questions.length}`
+        );
+      }
+
+      return res.json(
+        jsonOutput
+      );
     }
 
     catch (error) {
@@ -552,12 +695,14 @@ Return ONLY valid JSON matching the provided schema.
 
     finally {
       // ---------------------------
-      // Delete uploaded file
+      // Delete temporary file
       // ---------------------------
 
       if (uploadedFilePath) {
         fs.promises
-          .unlink(uploadedFilePath)
+          .unlink(
+            uploadedFilePath
+          )
           .catch((error) => {
             console.error(
               "فشل حذف الملف المؤقت:",
@@ -587,8 +732,11 @@ app.get(
 // Start server
 // ===============================
 
-app.listen(PORT, () => {
-  console.log(
-    `Server is running on port ${PORT}`
-  );
-});
+app.listen(
+  PORT,
+  () => {
+    console.log(
+      `Server is running on port ${PORT}`
+    );
+  }
+);
