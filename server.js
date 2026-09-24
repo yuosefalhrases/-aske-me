@@ -47,7 +47,7 @@ fileName.startsWith("ppt/media/")||
 fileName.startsWith("word/media/")
 );
 
-for(constfileNameofmediaFiles.slice(0,5)){
+for(const fileName of mediaFiles.slice(0,5)){
 constfile=zip.files[fileName];
 
 constimageBuffer=awaitfile.async("nodebuffer");
