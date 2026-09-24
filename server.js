@@ -5,119 +5,238 @@ import path from "path";
 import JSZip from "jszip";
 import mammoth from "mammoth";
 import { createRequire } from "module";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 const require = createRequire(import.meta.url);
 
-// إصلاح استدعاء pdf-parse ليتوافق مع ES Modules وقراءة ملفات الـ PDF بدون أخطاء
+// PDF
 const pdfModule = require("pdf-parse");
 const pdf = typeof pdfModule === "function" ? pdfModule : pdfModule.default;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// إعداد رفع الملفات (حد أقصى 100 ميجابايت)
+// ===============================
+// Upload settings
+// ===============================
+
 const upload = multer({
   dest: "uploads/",
-  limits: { fileSize: 100 * 1024 * 1024 },
+  limits: {
+    fileSize: 100 * 1024 * 1024,
+  },
 });
 
 app.use(express.static("."));
 app.use(express.json());
 
-// دالة استخراج الصور المدمجة من ملفات Zip (DOCX / PPTX)
+// ===============================
+// Extract images from DOCX / PPTX
+// ===============================
+
 async function extractImagesFromZip(filePath) {
   const images = [];
+
   try {
     const fileBuffer = await fs.promises.readFile(filePath);
     const zip = await JSZip.loadAsync(fileBuffer);
-    const mediaFiles = Object.keys(zip.files).filter((fileName) =>
-      fileName.startsWith("ppt/media/") || fileName.startsWith("word/media/")
+
+    const mediaFiles = Object.keys(zip.files).filter(
+      (fileName) =>
+        fileName.startsWith("ppt/media/") ||
+        fileName.startsWith("word/media/")
     );
 
-    for (const fileName of mediaFiles.slice(0, 5)) { // قراءة أحدث 5 صور لتفادي التأخير
+    // أول 5 صور فقط لتجنب حجم طلب كبير
+    for (const fileName of mediaFiles.slice(0, 5)) {
       const file = zip.files[fileName];
+
       const imageBuffer = await file.async("nodebuffer");
-      const ext = path.extname(fileName).toLowerCase().replace(".", "");
-      const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+
+      const ext = path
+        .extname(fileName)
+        .toLowerCase()
+        .replace(".", "");
+
+      let mimeType = "image/jpeg";
+
+      if (ext === "png") {
+        mimeType = "image/png";
+      } else if (ext === "webp") {
+        mimeType = "image/webp";
+      } else if (ext === "gif") {
+        mimeType = "image/gif";
+      }
 
       images.push({
         inlineData: {
           data: imageBuffer.toString("base64"),
-          mimeType: mimeType,
+          mimeType,
         },
       });
     }
-  } catch (e) {
-    console.warn("[Image Extraction] No images extracted or invalid archive:", e.message);
+  } catch (error) {
+    console.warn(
+      "[Image Extraction] Could not extract images:",
+      error.message
+    );
   }
+
   return images;
 }
 
-// استخراج النص من PPTX
-async function pptxText(filePath) {
-  const zip = await JSZip.loadAsync(await fs.promises.readFile(filePath));
-  const names = Object.keys(zip.files)
-    .filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n))
-    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+// ===============================
+// Extract text from PPTX
+// ===============================
 
-  let out = [];
-  for (const n of names) {
-    const xml = await zip.files[n].async("text");
-    const t = [...xml.matchAll(/<a:t>([\s\S]*?)<\/a:t>/g)].map((m) => m[1]);
-    if (t.length) out.push(`[${n}]\n${t.join(" ")}`);
+async function pptxText(filePath) {
+  const zip = await JSZip.loadAsync(
+    await fs.promises.readFile(filePath)
+  );
+
+  const names = Object.keys(zip.files)
+    .filter((name) =>
+      /^ppt\/slides\/slide\d+\.xml$/.test(name)
+    )
+    .sort((a, b) =>
+      a.localeCompare(b, undefined, { numeric: true })
+    );
+
+  const output = [];
+
+  for (const name of names) {
+    const xml = await zip.files[name].async("text");
+
+    const textParts = [
+      ...xml.matchAll(/<a:t>([\s\S]*?)<\/a:t>/g),
+    ].map((match) => match[1]);
+
+    if (textParts.length) {
+      output.push(
+        `[${name}]\n${textParts.join(" ")}`
+      );
+    }
   }
-  return out.join("\n");
+
+  return output.join("\n");
 }
 
-// دالة موحدة لاستخراج النصوص والصور من مختلف أنواع الملفات
+// ===============================
+// Extract content from file
+// ===============================
+
 async function extractContentFromFile(file) {
-  const ext = path.extname(file.originalname).toLowerCase();
+  const ext = path
+    .extname(file.originalname)
+    .toLowerCase();
+
   let text = "";
   let images = [];
 
   if (ext === ".pdf") {
     const dataBuffer = await fs.promises.readFile(file.path);
+
     if (typeof pdf !== "function") {
-      throw new Error("مكتبة pdf-parse غير معرفة كـ Function بشكل صحيح.");
+      throw new Error(
+        "مكتبة pdf-parse غير معرفة بشكل صحيح."
+      );
     }
-    const r = await pdf(dataBuffer);
-    text = r.text;
-  } else if (ext === ".docx") {
-    const r = await mammoth.extractRawText({ path: file.path });
-    text = r.value;
-    images = await extractImagesFromZip(file.path);
-  } else if (ext === ".pptx") {
-    text = await pptxText(file.path);
-    images = await extractImagesFromZip(file.path);
-  } else {
-    throw new Error("نوع الملف غير مدعوم. يرجى رفع ملف PDF, DOCX, أو PPTX.");
+
+    const result = await pdf(dataBuffer);
+
+    text = result.text || "";
   }
 
-  return { text, images };
+  else if (ext === ".docx") {
+    const result = await mammoth.extractRawText({
+      path: file.path,
+    });
+
+    text = result.value || "";
+
+    images = await extractImagesFromZip(file.path);
+  }
+
+  else if (ext === ".pptx") {
+    text = await pptxText(file.path);
+
+    images = await extractImagesFromZip(file.path);
+  }
+
+  else {
+    throw new Error(
+      "نوع الملف غير مدعوم. يرجى رفع PDF أو DOCX أو PPTX."
+    );
+  }
+
+  return {
+    text,
+    images,
+  };
 }
 
-// Schema المخرجات المضمونة للذكاء الاصطناعي
+// ===============================
+// Quiz JSON Schema
+// ===============================
+
 const quizResponseSchema = {
   type: "object",
+
   properties: {
     questions: {
       type: "array",
+
       items: {
         type: "object",
+
         properties: {
-          question: { type: "string" },
-          options: { type: "array", items: { type: "string" } },
-          correct_answer: { type: "integer" },
-          explanation: { type: "string" },
-          difficulty: { type: "string", enum: ["Easy", "Medium", "Hard"] },
+          question: {
+            type: "string",
+          },
+
+          options: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+          },
+
+          correct_answer: {
+            type: "integer",
+          },
+
+          explanation: {
+            type: "string",
+          },
+
+          difficulty: {
+            type: "string",
+            enum: [
+              "Easy",
+              "Medium",
+              "Hard",
+            ],
+          },
+
           cognitive_level: {
             type: "string",
-            enum: ["Recall", "Understanding", "Application", "Integration"],
+            enum: [
+              "Recall",
+              "Understanding",
+              "Application",
+              "Integration",
+            ],
           },
-          topic: { type: "string" },
-          source: { type: "string" },
+
+          topic: {
+            type: "string",
+          },
+
+          source: {
+            type: "string",
+          },
         },
+
         required: [
           "question",
           "options",
@@ -131,133 +250,345 @@ const quizResponseSchema = {
       },
     },
   },
+
   required: ["questions"],
 };
 
-// محرك التنفيذ المحدث بالنواذج الحديثة والمتاحة
-async function executeGeminiWithFallback(ai, contents) {
-  // استخدام النموذج الحديث والمشار إليه في الخطأ مباشرة
-  const activeModels = [
-    "gemini-3.6-flash",
-    "gemini-1.5-flash"
-  ];
+// ===============================
+// Gemini
+// ===============================
 
-  let lastError = null;
-
-  for (const modelName of activeModels) {
-    console.log(`[AI Engine] Executing with active model: ${modelName}`);
-
-    try {
-      const model = ai.getGenerativeModel({
-        model: modelName,
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: quizResponseSchema,
-          temperature: 0.2,
-        },
-      });
-
-      const result = await model.generateContent(contents);
-      console.log(`[AI Engine] Success response received from: ${modelName}`);
-      return result;
-
-    } catch (error) {
-      lastError = error;
-      const errMsg = error.message || "";
-
-      console.error(`[AI Error - ${modelName}]:`, errMsg);
-
-      if (errMsg.includes("404") || errMsg.includes("not found") || errMsg.includes("no longer available")) {
-        console.warn(`[AI Engine] Model ${modelName} unavailable. Trying next model...`);
-        continue;
-      }
-    }
+async function executeGemini(contents) {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error(
+      "مفتاح GEMINI_API_KEY غير موجود في إعدادات البيئة."
+    );
   }
 
-  throw new Error(`فشل إنشاء الاختبار: ${lastError?.message || "يرجى المحاولة لاحقاً"}`);
+  const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY,
+  });
+
+  // النموذج الحالي
+  const modelName = "gemini-3.6-flash";
+
+  console.log(
+    `[AI Engine] Using model: ${modelName}`
+  );
+
+  const response = await ai.models.generateContent({
+    model: modelName,
+
+    contents,
+
+    config: {
+      temperature: 0.2,
+
+      responseMimeType: "application/json",
+
+      responseSchema: quizResponseSchema,
+    },
+  });
+
+  console.log(
+    "[AI Engine] Response received successfully."
+  );
+
+  return response;
 }
 
+// ===============================
+// Safe JSON parser
+// ===============================
+
 function safeParseJSON(rawText) {
-  if (!rawText) throw new Error("استجابة الذكاء الاصطناعي فارغة.");
+  if (!rawText) {
+    throw new Error(
+      "استجابة الذكاء الاصطناعي فارغة."
+    );
+  }
 
   let cleaned = rawText.trim();
-  cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+
+  // إزالة Markdown fences إذا ظهرت
+  cleaned = cleaned
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
 
   const firstOpen = cleaned.indexOf("{");
   const lastClose = cleaned.lastIndexOf("}");
 
-  if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
-    cleaned = cleaned.substring(firstOpen, lastClose + 1);
+  if (
+    firstOpen !== -1 &&
+    lastClose !== -1 &&
+    lastClose > firstOpen
+  ) {
+    cleaned = cleaned.substring(
+      firstOpen,
+      lastClose + 1
+    );
   }
 
-  return JSON.parse(cleaned);
+  try {
+    return JSON.parse(cleaned);
+  } catch (error) {
+    console.error(
+      "[JSON Parse Error]",
+      cleaned
+    );
+
+    throw new Error(
+      "تعذر قراءة استجابة الذكاء الاصطناعي كـ JSON."
+    );
+  }
 }
 
-// API Endpoint الرئيسي
-app.post("/api/generate-quiz", upload.single("file"), async (req, res) => {
-  let uploadedFilePath = null;
+// ===============================
+// Generate Quiz
+// ===============================
 
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "لم يتم رفع أي ملف." });
-    }
-    uploadedFilePath = req.file.path;
+app.post(
+  "/api/generate-quiz",
+  upload.single("file"),
+  async (req, res) => {
+    let uploadedFilePath = null;
 
-    const count = Math.min(Math.max(parseInt(req.body.count || "10"), 1), 50);
-    const difficulty = ["Easy", "Medium", "Hard"].includes(req.body.difficulty)
-      ? req.body.difficulty
-      : "Medium";
+    try {
+      // ---------------------------
+      // Check file
+      // ---------------------------
 
-    const { text, images } = await extractContentFromFile(req.file);
-    const material = text.slice(0, 45000);
+      if (!req.file) {
+        return res.status(400).json({
+          error: "لم يتم رفع أي ملف.",
+        });
+      }
 
-    if (material.trim().length < 50 && images.length === 0) {
-      return res.status(400).json({ error: "الملف المرفوع لا يحتوي على نص أو صور كافية للتحليل." });
-    }
+      uploadedFilePath = req.file.path;
 
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: "مفتاح GEMINI_API_KEY غير مضاف في إعدادات البيئة." });
-    }
+      // ---------------------------
+      // Quiz count
+      // ---------------------------
 
-    const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const count = Math.min(
+        Math.max(
+          parseInt(req.body.count || "10"),
+          1
+        ),
+        50
+      );
 
-    const promptText = `You are the AskMe question generation engine.
+      // ---------------------------
+      // Difficulty
+      // ---------------------------
+
+      const difficulty = [
+        "Easy",
+        "Medium",
+        "Hard",
+      ].includes(req.body.difficulty)
+        ? req.body.difficulty
+        : "Medium";
+
+      console.log(
+        `[Quiz] Count: ${count}, Difficulty: ${difficulty}`
+      );
+
+      // ---------------------------
+      // Extract file
+      // ---------------------------
+
+      const {
+        text,
+        images,
+      } = await extractContentFromFile(req.file);
+
+      // حد أقصى للنص المرسل
+      const material = text.slice(0, 45000);
+
+      console.log(
+        `[File] Extracted text: ${material.length} chars`
+      );
+
+      console.log(
+        `[File] Extracted images: ${images.length}`
+      );
+
+      // ---------------------------
+      // Validate content
+      // ---------------------------
+
+      if (
+        material.trim().length < 50 &&
+        images.length === 0
+      ) {
+        return res.status(400).json({
+          error:
+            "الملف المرفوع لا يحتوي على نص أو صور كافية للتحليل.",
+        });
+      }
+
+      // ---------------------------
+      // API key
+      // ---------------------------
+
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({
+          error:
+            "مفتاح GEMINI_API_KEY غير مضاف في إعدادات البيئة.",
+        });
+      }
+
+      // ---------------------------
+      // Prompt
+      // ---------------------------
+
+      const promptText = `
+You are the AskMe question generation engine.
 
 SOURCE MATERIAL:
 ${material}
 
-Generate exactly ${count} MCQs at ${difficulty} difficulty level.
+Generate exactly ${count} multiple-choice questions.
 
-RULES:
-- Analyze text and any provided image or table data.
-- Use ONLY the provided material.
-- Do not introduce outside facts.
-- Provide 4 options per question with exactly 1 correct answer (0-indexed).
-- Return valid JSON matching the schema.`;
+Difficulty:
+${difficulty}
 
-    const contents = [promptText, ...images];
+IMPORTANT RULES:
 
-    const apiResponse = await executeGeminiWithFallback(ai, contents);
-    const jsonOutput = safeParseJSON(apiResponse.response.text());
+1. Use ONLY the provided source material.
+2. Do not introduce outside facts.
+3. Generate exactly ${count} questions.
+4. Every question must have exactly 4 options.
+5. There must be exactly ONE correct answer.
+6. correct_answer must be a 0-based index:
+   0 = first option
+   1 = second option
+   2 = third option
+   3 = fourth option
+7. Explanations must be based only on the source material.
+8. Use the provided images when they contain useful information.
+9. Identify the topic of every question.
+10. Identify the source/section from which the question was generated.
+11. Cognitive level must be one of:
+    Recall
+    Understanding
+    Application
+    Integration
 
-    return res.json(jsonOutput);
+Return ONLY valid JSON matching the provided schema.
+`;
 
-  } catch (error) {
-    console.error("[Quiz Route Error]:", error);
-    return res.status(500).json({
-      error: error.message || "حدث خطأ غير متوقع أثناء إنشاء الاختبار.",
-    });
-  } finally {
-    if (uploadedFilePath) {
-      fs.promises.unlink(uploadedFilePath).catch((err) => {
-        console.error("فشل حذف الملف المؤقت:", err);
+      // ---------------------------
+      // Gemini contents
+      // ---------------------------
+
+      const contents = [
+        {
+          role: "user",
+          parts: [
+            {
+              text: promptText,
+            },
+
+            ...images.map((image) => ({
+              inlineData: image.inlineData,
+            })),
+          ],
+        },
+      ];
+
+      // ---------------------------
+      // Generate
+      // ---------------------------
+
+      const apiResponse =
+        await executeGemini(contents);
+
+      // ---------------------------
+      // Read response
+      // ---------------------------
+
+      const rawText = apiResponse.text;
+
+      console.log(
+        "[AI Engine] Raw response length:",
+        rawText?.length || 0
+      );
+
+      const jsonOutput =
+        safeParseJSON(rawText);
+
+      // ---------------------------
+      // Final validation
+      // ---------------------------
+
+      if (
+        !jsonOutput ||
+        !Array.isArray(jsonOutput.questions)
+      ) {
+        throw new Error(
+          "الذكاء الاصطناعي لم يُرجع قائمة أسئلة صحيحة."
+        );
+      }
+
+      return res.json(jsonOutput);
+    }
+
+    catch (error) {
+      console.error(
+        "[Quiz Route Error]:",
+        error
+      );
+
+      return res.status(500).json({
+        error:
+          error.message ||
+          "حدث خطأ غير متوقع أثناء إنشاء الاختبار.",
       });
     }
-  }
-});
 
-app.get("/api/health", (req, res) => res.json({ status: "healthy", timestamp: new Date() }));
+    finally {
+      // ---------------------------
+      // Delete uploaded file
+      // ---------------------------
+
+      if (uploadedFilePath) {
+        fs.promises
+          .unlink(uploadedFilePath)
+          .catch((error) => {
+            console.error(
+              "فشل حذف الملف المؤقت:",
+              error
+            );
+          });
+      }
+    }
+  }
+);
+
+// ===============================
+// Health Check
+// ===============================
+
+app.get(
+  "/api/health",
+  (req, res) => {
+    res.json({
+      status: "healthy",
+      timestamp: new Date(),
+    });
+  }
+);
+
+// ===============================
+// Start server
+// ===============================
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(
+    `Server is running on port ${PORT}`
+  );
 });
