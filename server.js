@@ -9,7 +9,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const require = createRequire(import.meta.url);
 
-// إصلاح استدعاء pdf-parse ليتوافق مع ES Modules
+// إصلاح استدقاء pdf-parse ليتوافق مع ES Modules وقراءة ملفات الـ PDF بدون أخطاء
 const pdfModule = require("pdf-parse");
 const pdf = typeof pdfModule === "function" ? pdfModule : pdfModule.default;
 
@@ -35,7 +35,7 @@ async function extractImagesFromZip(filePath) {
       fileName.startsWith("ppt/media/") || fileName.startsWith("word/media/")
     );
 
-    for (const fileName of mediaFiles.slice(0, 5)) { // قراءة أحدث 5 صور لتفادي البطء
+    for (const fileName of mediaFiles.slice(0, 5)) { // قراءة أحدث 5 صور لتفادي التأخير
       const file = zip.files[fileName];
       const imageBuffer = await file.async("nodebuffer");
       const ext = path.extname(fileName).toLowerCase().replace(".", "");
@@ -70,7 +70,7 @@ async function pptxText(filePath) {
   return out.join("\n");
 }
 
-// دالة موحدة لاستخراج النصوص والصور
+// دالة موحدة لاستخراج النصوص والصور من مختلف أنواع الملفات
 async function extractContentFromFile(file) {
   const ext = path.extname(file.originalname).toLowerCase();
   let text = "";
@@ -97,7 +97,7 @@ async function extractContentFromFile(file) {
   return { text, images };
 }
 
-// Schema المخرجات المضمونة
+// Schema المخرجات المضمونة للذكاء الاصطناعي
 const quizResponseSchema = {
   type: "object",
   properties: {
@@ -134,11 +134,10 @@ const quizResponseSchema = {
   required: ["questions"],
 };
 
-// محرك التنفيذ المحمي
+// محرك التنفيذ المحمي والمعالج بالنماذج الرسمية المعتمدة
 async function executeGeminiWithFallback(ai, contents) {
   const activeModels = [
     "gemini-1.5-flash",
-    "gemini-2.5-flash",
     "gemini-1.5-pro"
   ];
 
@@ -168,6 +167,8 @@ async function executeGeminiWithFallback(ai, contents) {
         lastError = error;
         const errMsg = error.message || "";
 
+        console.error(`[AI Error - ${modelName} - Attempt ${attempt}]:`, errMsg);
+
         if (errMsg.includes("404") || errMsg.includes("not found")) {
           console.warn(`[AI Engine] Model ${modelName} returned 404. Skipping...`);
           break;
@@ -188,7 +189,7 @@ async function executeGeminiWithFallback(ai, contents) {
     }
   }
 
-  throw new Error(`تعذر إنشاء الاختبار حالياً بسبب ضغط عالي. يرجى إعادة المحاولة بعد بضع ثوانٍ.`);
+  throw new Error(`فشل إنشاء الاختبار: ${lastError?.message || "يرجى المحاولة لاحقاً"}`);
 }
 
 function safeParseJSON(rawText) {
