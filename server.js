@@ -34,7 +34,7 @@ app.use(express.json());
 //ExtractimagesfromDOCX/PPTX
 //===============================
 
-asyncfunctionextractImagesFromZip(filePath){
+async function extractImagesFromZip(filePath){
 constimages=[];
 
 try{
