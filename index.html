@@ -22,7 +22,7 @@ button,input,select{font:inherit}
 button{cursor:pointer}
 .wrap{max-width:940px;margin:auto;padding:24px 20px 65px}
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:56px}
-.logo{font-size:25px;font-weight:850;letter-spacing:-1px}
+.logo{font-size:25px;font-weight:850;letter-spacing:-1px;cursor:pointer}
 .auth-area{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .auth-btn{
   border:1px solid #dddff0;background:#fff;color:#4d46b8;border-radius:10px;
@@ -115,8 +115,9 @@ input[type=file]{display:none}
 <div class="wrap">
 
 <header>
-  <div class="logo">ask me</div>
+  <div class="logo" id="mainLogo">ask me</div>
   <div id="authArea" class="auth-area">
+    <button id="goHomeBtn" class="auth-btn" type="button" style="display:none;">Home</button>
     <button id="loginBtn" class="auth-btn" type="button">Log in</button>
     <button id="signupBtn" class="auth-btn primary-auth" type="button">Sign up</button>
   </div>
@@ -244,12 +245,92 @@ function show(id) {
   document.querySelectorAll(".screen").forEach(x => x.classList.remove("active"));
   const target = $(id);
   if (target) target.classList.add("active");
+  
+  // التحكم بظهور زر Home في شريط التنقل العلوي
+  const goHomeBtn = $("goHomeBtn");
+  if (goHomeBtn) {
+    goHomeBtn.style.display = (id === "quiz" || id === "result") ? "inline-block" : "none";
+  }
+
+  // حفظ اسم الشاشة الحالية
+  if (id === "quiz" || id === "result") {
+    localStorage.setItem("askme_active_screen", id);
+  } else if (id === "home") {
+    localStorage.removeItem("askme_active_screen");
+  }
+
   window.scrollTo(0, 0);
 }
 
 function escapeHtml(v) {
   return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
+
+/* ---------- LocalStorage Management ---------- */
+function saveQuizToStorage() {
+  if (questions && questions.length > 0) {
+    localStorage.setItem("askme_questions", JSON.stringify(questions));
+    localStorage.setItem("askme_answers", JSON.stringify(answers));
+    localStorage.setItem("askme_current", current.toString());
+  }
+}
+
+function restoreQuizFromStorage() {
+  const savedQuestions = localStorage.getItem("askme_questions");
+  const savedAnswers = localStorage.getItem("askme_answers");
+  const savedCurrent = localStorage.getItem("askme_current");
+  const activeScreen = localStorage.getItem("askme_active_screen");
+
+  if (savedQuestions && activeScreen) {
+    try {
+      questions = JSON.parse(savedQuestions);
+      answers = savedAnswers ? JSON.parse(savedAnswers) : [];
+      current = savedCurrent ? parseInt(savedCurrent, 10) : 0;
+
+      if (activeScreen === "quiz") {
+        show("quiz");
+        render();
+        return true;
+      } else if (activeScreen === "result") {
+        finish();
+        return true;
+      }
+    } catch(e) {
+      console.error("Error restoring quiz state:", e);
+      clearQuizStorage();
+    }
+  }
+  return false;
+}
+
+function clearQuizStorage() {
+  questions = []; answers = []; current = 0; currentExamId = null;
+  localStorage.removeItem("askme_questions");
+  localStorage.removeItem("askme_answers");
+  localStorage.removeItem("askme_current");
+  localStorage.removeItem("askme_active_screen");
+}
+
+function handleHomeClick() {
+  if (questions.length > 0 && localStorage.getItem("askme_active_screen") === "quiz") {
+    if (!confirm("Are you sure you want to go Home? Your quiz progress will be reset.")) {
+      return;
+    }
+  }
+  clearQuizStorage();
+  if ($("file")) $("file").value = "";
+  if ($("fileBox")) $("fileBox").classList.remove("show");
+  if ($("generate")) $("generate").disabled = true;
+  if ($("status")) $("status").textContent = "Choose a file to begin.";
+  show("home");
+}
+
+/* ---------- Navigation Events ---------- */
+$("backFromLogin").onclick = () => show("home");
+$("backFromSignup").onclick = () => show("home");
+$("dashboardHome").onclick = () => show("home");
+if ($("goHomeBtn")) $("goHomeBtn").onclick = handleHomeClick;
+if ($("mainLogo")) $("mainLogo").onclick = handleHomeClick;
 
 function authReady() { return !!supabaseClient; }
 
@@ -264,22 +345,21 @@ function missingSupabaseMessage() {
   return "Supabase is not connected yet. Add your real publishable key in the config section.";
 }
 
-/* ---------- Navigation ---------- */
-$("backFromLogin").onclick = () => show("home");
-$("backFromSignup").onclick = () => show("home");
-$("dashboardHome").onclick = () => show("home");
-
 /* ---------- Auth UI ---------- */
 function renderAuth(user) {
   const area = $("authArea");
+  const homeBtnHtml = '<button id="goHomeBtn" class="auth-btn" type="button" style="display:' + (localStorage.getItem("askme_active_screen") ? "inline-block" : "none") + ';">Home</button>';
+  
   if (!user) {
-    area.innerHTML = '<button id="loginBtn" class="auth-btn" type="button">Log in</button><button id="signupBtn" class="auth-btn primary-auth" type="button">Sign up</button>';
+    area.innerHTML = homeBtnHtml + '<button id="loginBtn" class="auth-btn" type="button">Log in</button><button id="signupBtn" class="auth-btn primary-auth" type="button">Sign up</button>';
     $("loginBtn").onclick = () => show("login");
     $("signupBtn").onclick = () => show("signup");
+    if ($("goHomeBtn")) $("goHomeBtn").onclick = handleHomeClick;
     return;
   }
-  area.innerHTML = '<span class="user-email">' + escapeHtml(user.email || "Account") + '</span><button id="dashboardBtn" class="auth-btn" type="button">My AskMe</button><button id="logoutBtn" class="auth-btn" type="button">Log out</button>';
+  area.innerHTML = homeBtnHtml + '<span class="user-email">' + escapeHtml(user.email || "Account") + '</span><button id="dashboardBtn" class="auth-btn" type="button">My AskMe</button><button id="logoutBtn" class="auth-btn" type="button">Log out</button>';
   
+  if ($("goHomeBtn")) $("goHomeBtn").onclick = handleHomeClick;
   $("dashboardBtn").onclick = () => { loadDashboard(); show("dashboard"); };
   $("logoutBtn").onclick = async () => {
     if (supabaseClient) await supabaseClient.auth.signOut();
@@ -365,7 +445,10 @@ $("generate").onclick = async () => {
     if (!r.ok) throw new Error(data.error || "Generation failed");
     questions = data.questions || [];
     if (!questions.length) throw new Error("No questions returned");
+    
     answers = []; current = 0; currentExamId = null;
+    saveQuizToStorage();
+    
     $("qDiff").textContent = $("difficulty").value;
     show("quiz"); render();
   } catch(e) {
@@ -392,14 +475,25 @@ function render() {
     if (answers[current] === k) b.classList.add("selected");
     b.onclick = () => {
       document.querySelectorAll(".option").forEach(x => x.classList.remove("selected"));
-      b.classList.add("selected"); answers[current] = k; $("next").disabled = false;
+      b.classList.add("selected"); 
+      answers[current] = k; 
+      $("next").disabled = false;
+      saveQuizToStorage(); // حفظ عند اختيار الإجابة
     };
     $("opts").appendChild(b);
   });
 }
 
-$("prev").onclick = () => { if (current > 0) { current--; render(); } };
-$("next").onclick = () => { if (current < questions.length - 1) { current++; render(); } else finish(); };
+$("prev").onclick = () => { if (current > 0) { current--; saveQuizToStorage(); render(); } };
+$("next").onclick = () => { 
+  if (current < questions.length - 1) { 
+    current++; 
+    saveQuizToStorage(); 
+    render(); 
+  } else { 
+    finish(); 
+  } 
+};
 
 /* ---------- Results ---------- */
 function finish() {
@@ -429,6 +523,7 @@ function finish() {
   }).join("");
 
   show("result");
+  saveQuizToStorage();
 }
 
 function renderPerformanceAnalysis() {
@@ -536,11 +631,18 @@ async function loadDashboard() {
 
 /* ---------- Restart ---------- */
 $("restart").onclick = () => {
-  questions = []; answers = []; current = 0; currentExamId = null;
-  $("file").value = ""; $("fileBox").classList.remove("show"); $("generate").disabled = true;
-  $("status").textContent = "Choose a file to begin.";
+  clearQuizStorage();
+  if ($("file")) $("file").value = ""; 
+  if ($("fileBox")) $("fileBox").classList.remove("show"); 
+  if ($("generate")) $("generate").disabled = true;
+  if ($("status")) $("status").textContent = "Choose a file to begin.";
   show("home");
 };
+
+/* ---------- Page Init ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  restoreQuizFromStorage();
+});
 </script>
 </body>
 </html>
