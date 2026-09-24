@@ -22,13 +22,42 @@ const upload = multer({
 app.use(express.static("."));
 app.use(express.json());
 
+// دالة استخراج الصور المدمجة من ملفات Zip (DOCX / PPTX)
+async function extractImagesFromZip(filePath) {
+  const images = [];
+  try {
+    const fileBuffer = await fs.promises.readFile(filePath);
+    const zip = await JSZip.loadAsync(fileBuffer);
+    const mediaFiles = Object.keys(zip.files).filter((fileName) =>
+      fileName.startsWith("ppt/media/") || fileName.startsWith("word/media/")
+    );
+
+    for (const fileName of mediaFiles.slice(0, 5)) { // قراءة أحدث 5 صور لتفادي البطء
+      const file = zip.files[fileName];
+      const imageBuffer = await file.async("nodebuffer");
+      const ext = path.extname(fileName).toLowerCase().replace(".", "");
+      const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+
+      images.push({
+        inlineData: {
+          data: imageBuffer.toString("base64"),
+          mimeType: mimeType,
+        },
+      });
+    }
+  } catch (e) {
+    console.warn("[Image Extraction] No images extracted or invalid archive:", e.message);
+  }
+  return images;
+}
+
 // استخراج النص من PPTX
 async function pptxText(filePath) {
   const zip = await JSZip.loadAsync(await fs.promises.readFile(filePath));
   const names = Object.keys(zip.files)
     .filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n))
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-  
+
   let out = [];
   for (const n of names) {
     const xml = await zip.files[n].async("text");
@@ -38,26 +67,28 @@ async function pptxText(filePath) {
   return out.join("\n");
 }
 
-// دالة موحدة لاستخراج النصوص
-async function extractTextFromFile(file) {
+// دالة موحدة لاستخراج النصوص والصور
+async function extractContentFromFile(file) {
   const ext = path.extname(file.originalname).toLowerCase();
+  let text = "";
+  let images = [];
 
   if (ext === ".pdf") {
     const dataBuffer = await fs.promises.readFile(file.path);
     const r = await pdf(dataBuffer);
-    return r.text;
-  }
-
-  if (ext === ".docx") {
+    text = r.text;
+  } else if (ext === ".docx") {
     const r = await mammoth.extractRawText({ path: file.path });
-    return r.value;
+    text = r.value;
+    images = await extractImagesFromZip(file.path);
+  } else if (ext === ".pptx") {
+    text = await pptxText(file.path);
+    images = await extractImagesFromZip(file.path);
+  } else {
+    throw new Error("نوع الملف غير مدعوم. يرجى رفع ملف PDF, DOCX, أو PPTX.");
   }
 
-  if (ext === ".pptx") {
-    return await pptxText(file.path);
-  }
-
-  throw new Error("نوع الملف غير مدعوم. يرجى رفع ملف PDF, DOCX, أو PPTX.");
+  return { text, images };
 }
 
 // Schema المخرجات المضمونة
@@ -97,12 +128,12 @@ const quizResponseSchema = {
   required: ["questions"],
 };
 
-// محرك التنفيذ المحمي والمعالج للسرعة والبدائل
-async function executeGeminiWithFallback(ai, prompt) {
+// محرك التنفيذ المحمي والمعالج للسرعة والبدائل (تم تصحيح أسماء النماذج)
+async function executeGeminiWithFallback(ai, contents) {
   const activeModels = [
-    "gemini-3.6-flash",
-    "gemini-3.8-flash",
-    "gemini-3.5-flash-lite"
+    "gemini-1.5-flash",
+    "gemini-2.5-flash",
+    "gemini-1.5-pro"
   ];
 
   let lastError = null;
@@ -115,16 +146,16 @@ async function executeGeminiWithFallback(ai, prompt) {
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: quizResponseSchema,
-        temperature: 0.2, // لتسريع الاستجابة وتقليل وقت التفكير
+        temperature: 0.2,
       },
     });
 
-    const maxRetries = 3;
-    let baseDelay = 1500;
+    const maxRetries = 2;
+    let baseDelay = 1200;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const result = await model.generateContent(prompt);
+        const result = await model.generateContent(contents);
         console.log(`[AI Engine] Fast response received from: ${modelName}`);
         return result;
       } catch (error) {
@@ -139,12 +170,12 @@ async function executeGeminiWithFallback(ai, prompt) {
         const is503 = errMsg.includes("503") || errMsg.includes("Service Unavailable") || errMsg.includes("429");
 
         if (is503 && attempt < maxRetries) {
-          const jitter = Math.random() * 400;
+          const jitter = Math.random() * 300;
           const delay = baseDelay * Math.pow(2, attempt - 1) + jitter;
-          console.warn(`[AI Engine] ${modelName} busy (503/429). Retrying in ${Math.round(delay)}ms...`);
+          console.warn(`[AI Engine] ${modelName} busy. Retrying in ${Math.round(delay)}ms...`);
           await new Promise((res) => setTimeout(res, delay));
         } else {
-          console.warn(`[AI Engine] Model ${modelName} failed on attempt ${attempt}. Switching model...`);
+          console.warn(`[AI Engine] Model ${modelName} failed on attempt ${attempt}.`);
           break;
         }
       }
@@ -154,16 +185,15 @@ async function executeGeminiWithFallback(ai, prompt) {
   throw new Error(`تعذر إنشاء الاختبار حالياً بسبب ضغط عالي. يرجى إعادة المحاولة بعد بضع ثوانٍ.`);
 }
 
-// دالة تنظيف واستخراج JSON الآمنة
 function safeParseJSON(rawText) {
   if (!rawText) throw new Error("استجابة الذكاء الاصطناعي فارغة.");
-  
+
   let cleaned = rawText.trim();
   cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
-  
-  const firstOpen = cleaned.indexOf('{');
-  const lastClose = cleaned.lastIndexOf('}');
-  
+
+  const firstOpen = cleaned.indexOf("{");
+  const lastClose = cleaned.lastIndexOf("}");
+
   if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
     cleaned = cleaned.substring(firstOpen, lastClose + 1);
   }
@@ -186,13 +216,11 @@ app.post("/api/generate-quiz", upload.single("file"), async (req, res) => {
       ? req.body.difficulty
       : "Medium";
 
-    const extractedContent = await extractTextFromFile(req.file);
-    
-    // تحسين السرعة: تقطيع النص إلى 45,000 حرف (أسرع بنسبة 60%)
-    const material = extractedContent.slice(0, 45000);
+    const { text, images } = await extractContentFromFile(req.file);
+    const material = text.slice(0, 45000);
 
-    if (material.trim().length < 100) {
-      return res.status(400).json({ error: "الملف المرفوع لا يحتوي على نص كافٍ للتحليل." });
+    if (material.trim().length < 50 && images.length === 0) {
+      return res.status(400).json({ error: "الملف المرفوع لا يحتوي على نص أو صور كافية للتحليل." });
     }
 
     if (!process.env.GEMINI_API_KEY) {
@@ -201,40 +229,24 @@ app.post("/api/generate-quiz", upload.single("file"), async (req, res) => {
 
     const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-    const prompt = `You are the ask me question engine.
+    const promptText = `You are the AskMe question generation engine.
 
 SOURCE MATERIAL:
 ${material}
 
-Generate exactly ${count} MCQs at ${difficulty} difficulty.
+Generate exactly ${count} MCQs at ${difficulty} difficulty level.
 
-SOURCE RULES:
-- Use ONLY the source material.
-- Do not use outside knowledge.
-- Every correct answer must be directly supported by the source.
-- Do not invent facts, numbers, mechanisms, examples, or recommendations.
+RULES:
+- Analyze text and any provided image or table data.
+- Use ONLY the provided material.
+- Do not introduce outside facts.
+- Provide 4 options per question with exactly 1 correct answer (0-indexed).
+- Return valid JSON matching the schema.`;
 
-QUESTION QUALITY:
-- Prioritize understanding, application, comparison, calculation, mechanism, interpretation, and integration when supported by the source.
-- Prefer reasoning over simple keyword recognition when the source allows it.
-- Difficulty must come from reasoning and content complexity, never from ambiguity or trick wording.
-- Each question must test one clear concept.
-- State all necessary numbers, units, time periods, conditions, and assumptions.
+    // تجميع النص مع الصور المدعومة وإرسالها للنموذج
+    const contents = [promptText, ...images];
 
-OPTIONS:
-- Exactly 4 options for every question.
-- Exactly ONE best answer.
-- Distractors must be plausible and related to the tested concept.
-- Avoid "All of the above" and "None of the above".
-
-EXPLANATIONS:
-- Give a concise explanation for the correct answer using only source info.
-
-FINAL REQUIREMENTS:
-- Return valid JSON matching the requested schema.
-- Return exactly ${count} valid MCQs.`;
-
-    const apiResponse = await executeGeminiWithFallback(ai, prompt);
+    const apiResponse = await executeGeminiWithFallback(ai, contents);
     const jsonOutput = safeParseJSON(apiResponse.response.text());
 
     return res.json(jsonOutput);
