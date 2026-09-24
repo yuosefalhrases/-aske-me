@@ -1,13 +1,12 @@
-importexpressfrom"express";
-importmulterfrom"multer";
-importfsfrom"fs";
-importpathfrom"path";
-importJSZipfrom"jszip";
-importmammothfrom"mammoth";
-import{getData}from"pdf-parse/worker";
-import{PDFParse}from"pdf-parse";
-import{GoogleGenAI}from"@google/genai";
-
+import express from "express";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
+import JSZip from "jszip";
+import mammoth from "mammoth";
+import { getData } from "pdf-parse/worker";
+import { PDFParse } from "pdf-parse";
+import { GoogleGenAI } from "@google/genai";
 //===============================
 //PDFworker
 //===============================
