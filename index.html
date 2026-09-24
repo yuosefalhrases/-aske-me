@@ -2,59 +2,121 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>AskMe</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
 :root{
-  --bg:#f7f8fc;--surface:#fff;--surface-soft:#fafaff;
-  --text:#171a2b;--muted:#697386;--border:#e6e8f0;
-  --primary:#4f46e5;--violet:#7c3aed;--success:#18875b;--danger:#c83c4a;
-  --shadow:0 18px 55px rgba(39,34,93,.09)
+  --bg:#f8fafc;--surface:#ffffff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;
+  --primary:#4f46e5;--primary-hover:#4338ca;--violet:#7c3aed;--success:#18875b;--danger:#c83c4a;
+  --primary-gradient:linear-gradient(135deg, #6366f1, #8b5cf6);
+  --shadow-card:0 20px 40px rgba(0, 0, 0, 0.06);
+  --radius:20px;
 }
-*{box-sizing:border-box}
+*{box-sizing:border-box;margin:0;padding:0;}
 body{
-  margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  background:radial-gradient(circle at 10% 0%,rgba(124,58,237,.07),transparent 28%),radial-gradient(circle at 90% 5%,rgba(79,70,229,.08),transparent 25%),var(--bg);
-  color:var(--text)
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:#f1f3f9;color:var(--text);min-height:100vh;
+  -webkit-font-smoothing:antialiased;
 }
 button,input,select{font:inherit}
 button{cursor:pointer}
-.wrap{max-width:940px;margin:auto;padding:24px 20px 65px}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:56px}
-.logo{font-size:25px;font-weight:850;letter-spacing:-1px;cursor:pointer}
-.auth-area{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.wrap{max-width:850px;margin:auto;padding:20px 16px 65px}
+
+/* Header UI */
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:35px;position:relative}
+.logo{font-size:26px;font-weight:850;color:#1e1b4b;cursor:pointer;letter-spacing:-0.5px}
+.logo span{color:var(--primary)}
+
+.auth-area{display:flex;gap:10px;align-items:center;position:relative}
 .auth-btn{
-  border:1px solid #dddff0;background:#fff;color:#4d46b8;border-radius:10px;
-  padding:9px 13px;font-size:12px;font-weight:750
+  border:1px solid var(--border);background:#fff;color:var(--text);border-radius:10px;
+  padding:8px 14px;font-size:13px;font-weight:700;transition:.18s ease;
 }
 .auth-btn.primary-auth{background:var(--primary);color:#fff;border-color:var(--primary)}
-.user-email{font-size:12px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hero{text-align:center;margin-bottom:30px}
-.hero h1{font-size:48px;letter-spacing:-2.4px;line-height:1.02;margin:0 0 14px;font-weight:850}
-.hero h1 .accent{background:linear-gradient(100deg,var(--primary),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero p{color:var(--muted);font-size:16px;max-width:590px;margin:auto;line-height:1.55}
-.card{background:rgba(255,255,255,.95);border:1px solid var(--border);border-radius:24px;padding:28px;box-shadow:var(--shadow)}
-.upload{display:block;border:1.5px dashed #cdd1df;border-radius:18px;padding:42px 18px;text-align:center;cursor:pointer;background:linear-gradient(180deg,#fcfcff,#f9f9fd)}
-.upload .icon{width:54px;height:54px;margin:0 auto 13px;border-radius:16px;display:grid;place-items:center;font-size:23px;color:var(--primary);background:#eeecff}
-.upload h3{margin:0 0 6px;font-size:17px}
-.muted{color:var(--muted);font-size:13px}
+
+.user-profile{
+  position:relative;display:flex;align-items:center;gap:8px;cursor:pointer;
+  background:#fff;padding:6px 14px;border-radius:30px;border:1px solid var(--border);
+  box-shadow:0 2px 6px rgba(0,0,0,0.03);
+}
+.profile-avatar{
+  width:30px;height:30px;border-radius:50%;background:var(--primary);
+  color:#fff;display:grid;place-items:center;font-weight:bold;font-size:13px;
+}
+.user-email{font-size:12px;color:var(--text);font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.dropdown-menu{
+  display:none;position:absolute;top:115%;right:0;background:#fff;
+  border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-card);
+  width:190px;z-index:100;overflow:hidden;
+}
+.dropdown-menu.show{display:block}
+.dropdown-header{padding:12px 14px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);word-break:break-all}
+.dropdown-item{padding:11px 14px;font-size:13px;color:var(--text);font-weight:600;cursor:pointer;transition:.15s}
+.dropdown-item:hover{background:#f8fafc;color:var(--primary)}
+
+/* Hero & Steps */
+.hero{text-align:center;margin-bottom:25px}
+.hero h1{font-size:38px;letter-spacing:-1px;line-height:1.15;margin:0 0 12px;font-weight:850;color:#0f172a}
+.hero h1 span{color:var(--primary)}
+.hero p{color:var(--muted);font-size:15px;max-width:520px;margin:auto;line-height:1.5}
+
+.steps{display:flex;gap:8px;justify-content:center;margin-bottom:25px}
+.step{font-size:12px;font-weight:700;padding:6px 16px;border-radius:20px;background:#e2e8f0;color:var(--muted)}
+.step.active{background:#1e1b4b;color:#fff}
+
+/* Card Section */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:30px;box-shadow:var(--shadow-card)}
+
+/* Upload Box UI */
+.upload-box{
+  display:block;border:2px dashed #cbd5e1;border-radius:16px;padding:35px 20px;
+  text-align:center;cursor:pointer;background:#f8fafc;transition:all 0.2s ease;
+}
+.upload-box:hover{border-color:var(--primary);background:#f0fdf4}
+.upload-icon{
+  width:50px;height:50px;margin:0 auto 12px;border-radius:14px;
+  display:grid;place-items:center;font-size:20px;color:var(--primary);background:#e0e7ff;
+}
+.upload-title{font-size:16px;font-weight:700;color:#0f172a}
+.upload-title span{color:var(--primary);text-decoration:underline}
+.file-types{display:flex;justify-content:center;gap:10px;margin-top:10px;font-size:18px;color:var(--muted)}
 input[type=file]{display:none}
-.file{display:none;margin-top:12px;padding:12px 14px;background:#f2f1ff;border:1px solid #e2dfff;border-radius:12px;justify-content:space-between;gap:10px}
+
+.file{display:none;margin-top:14px;padding:12px 16px;background:#e0e7ff;border-radius:12px;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;color:var(--primary)}
 .file.show{display:flex}
-.settings{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
-.field label{display:block;font-weight:750;font-size:12px;margin-bottom:7px}
-.field input,.field select{width:100%;padding:13px 12px;border:1px solid #dfe2eb;border-radius:12px;background:#fff;color:var(--text);outline:none}
-.field input:focus,.field select:focus{border-color:#8f89eb;box-shadow:0 0 0 4px #eeecff}
+
+/* Controls UI */
+.control-group{margin-top:22px}
+.control-label{display:block;font-weight:700;font-size:13px;margin-bottom:8px;color:#334155}
+
+/* Range Slider */
+.slider-container input[type="range"]{width:100%;accent-color:var(--primary);cursor:pointer}
+.slider-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px;font-weight:700}
+
+/* Segmented Buttons */
+.segmented{display:flex;background:#f1f5f9;padding:4px;border-radius:12px;gap:4px}
+.segment-btn{
+  flex:1;padding:10px;border:0;background:transparent;border-radius:8px;
+  font-weight:700;font-size:13px;color:var(--muted);cursor:pointer;transition:all 0.2s;
+}
+.segment-btn.active{background:#e0e7ff;color:var(--primary)}
+
+/* Primary Action Button */
+.btn-submit{
+  width:100%;border:0;border-radius:30px;padding:16px;font-weight:800;font-size:15px;
+  background:var(--primary-gradient);color:#fff;margin-top:25px;transition:all .2s ease;
+  box-shadow:0 8px 20px rgba(99, 102, 241, 0.3);
+}
+.btn-submit:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 24px rgba(99, 102, 241, 0.4)}
+.btn-submit:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none;background:#cbd5e1}
+
 .btn{width:100%;border:0;border-radius:12px;padding:14px;font-weight:780;font-size:14px;transition:.18s ease}
-.primary{background:linear-gradient(100deg,var(--primary),var(--violet));color:#fff;margin-top:18px;box-shadow:0 9px 22px rgba(79,70,229,.2)}
-.primary:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .secondary{background:#f0efff;color:#4d46b8}
-.danger{background:#fff0f1;color:var(--danger)}
-.note{text-align:center;color:#8a92a3;font-size:12px;margin-top:12px;min-height:18px}
-.steps{display:flex;gap:7px;justify-content:center;margin:10px 0 24px}
-.step{font-size:11px;font-weight:700;padding:7px 11px;border-radius:99px;background:#eceef4;color:#737c8d}
-.step.active{background:#e8e5ff;color:#5149c3}
+.note{text-align:center;color:#8a92a3;font-size:12px;margin-top:14px;min-height:18px}
+
 .screen{display:none}.screen.active{display:block}
 .auth-card{max-width:520px;margin:auto}
 .auth-card h2{text-align:center;margin-top:0}
@@ -62,22 +124,23 @@ input[type=file]{display:none}
 .auth-status{text-align:center;font-size:13px;margin-top:12px;min-height:20px;color:var(--muted)}
 .auth-status.success{color:var(--success)}.auth-status.error{color:var(--danger)}
 .dashboard-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}
-.dashboard-head h2{margin:0}
 .dashboard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
 .dash-stat{background:#fafaff;border:1px solid #e8e8f1;border-radius:15px;padding:16px}
 .dash-stat strong{font-size:24px;display:block}.dash-stat span{font-size:12px;color:var(--muted)}
 .empty{text-align:center;padding:35px 15px;color:var(--muted);border:1px dashed #dfe1ea;border-radius:15px}
+
+/* Quiz & Results UI */
 .top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-weight:700}
 .progress{height:7px;background:#e9eaf1;border-radius:20px;margin:12px 0 29px;overflow:hidden}
-.bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--violet));border-radius:20px}
-.question{font-size:25px;line-height:1.38;letter-spacing:-.5px;margin:0 0 22px}
+.bar{height:100%;background:var(--primary-gradient);border-radius:20px}
+.question{font-size:24px;line-height:1.38;letter-spacing:-.5px;margin:0 0 22px}
 .options{display:grid;gap:11px}
 .option{padding:16px;text-align:left;border:1px solid #e0e3eb;background:#fff;border-radius:13px;font-weight:650;color:var(--text);cursor:pointer}
 .option.selected{background:#eeecff;border-color:#6b63df}
 .quiz-actions{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:18px}
 .quiz-actions .btn{margin-top:0}
 .result{text-align:center}
-.score{font-size:58px;font-weight:850;letter-spacing:-2px;background:linear-gradient(100deg,var(--primary),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.score{font-size:58px;font-weight:850;letter-spacing:-2px;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent}
 .percent{font-size:18px;font-weight:800;color:#5e6678;margin-top:-4px}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}
 .stat{background:#f7f7fb;border:1px solid #ececf2;border-radius:14px;padding:15px}
@@ -91,7 +154,7 @@ input[type=file]{display:none}
 .analysis-label{font-size:12px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .analysis-value{font-size:12px;font-weight:800;color:#5048bd}
 .analysis-track{grid-column:1/-1;height:7px;background:#e5e5ee;border-radius:99px;overflow:hidden}
-.analysis-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--violet));border-radius:99px}
+.analysis-fill{height:100%;background:var(--primary-gradient);border-radius:99px}
 .review{text-align:left;margin-top:23px}
 .review-item{border:1px solid #e3e6ed;border-radius:15px;padding:17px;margin:11px 0;background:#fff}
 .review-item.correct{border-left:4px solid var(--success)}.review-item.incorrect{border-left:4px solid var(--danger)}
@@ -102,11 +165,16 @@ input[type=file]{display:none}
 .share-box input{flex:1;min-width:0;padding:12px;border:1px solid var(--border);border-radius:10px;background:#fafaff}
 .share-box button{width:auto;padding:0 16px;margin:0}
 .small-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+
+/* Footer UI */
+footer{margin-top:50px;text-align:center;color:var(--muted);font-size:13px}
+.footer-links{display:flex;justify-content:center;gap:18px;margin-bottom:15px;flex-wrap:wrap}
+.footer-links a{color:var(--muted);text-decoration:none;font-weight:600}
+.socials{display:flex;justify-content:center;gap:18px;font-size:16px}
+
 @media(max-width:650px){
-  .wrap{padding:20px 15px 50px}header{margin-bottom:43px;align-items:flex-start}
-  .hero h1{font-size:38px}.settings,.analysis-grid,.dashboard-grid{grid-template-columns:1fr}
-  .card{padding:20px;border-radius:20px}.question{font-size:22px}.steps{overflow:hidden;justify-content:flex-start}
-  .share-box{display:grid;grid-template-columns:1fr}.share-box button{padding:13px}
+  .wrap{padding:16px 12px 40px}.hero h1{font-size:28px}.analysis-grid,.dashboard-grid{grid-template-columns:1fr}
+  .card{padding:20px;border-radius:18px}.question{font-size:20px}
 }
 </style>
 </head>
@@ -115,33 +183,71 @@ input[type=file]{display:none}
 <div class="wrap">
 
 <header>
-  <div class="logo" id="mainLogo">ask me</div>
+  <div class="logo" id="mainLogo">Ask<span>Me</span></div>
   <div id="authArea" class="auth-area">
-    <button id="goHomeBtn" class="auth-btn" type="button" style="display:none;">Home</button>
-    <button id="loginBtn" class="auth-btn" type="button">Log in</button>
-    <button id="signupBtn" class="auth-btn primary-auth" type="button">Sign up</button>
+    <!-- Auth Buttons or User Profile will render dynamically -->
   </div>
 </header>
 
 <section id="home" class="screen active">
   <div class="hero">
-    <h1>Study smarter.<br><span class="accent">Practice with AskMe.</span></h1>
-    <p>Turn your lectures into focused practice questions and test your understanding with confidence.</p>
+    <h1>Transform Your Notes<br>into Practice Quizzes.<br>Smart Learning with <span>AskMe.</span></h1>
+    <p>Leverage AI to test your knowledge. Practice makes perfect.</p>
   </div>
+
   <div class="steps">
-    <span class="step active">1 Upload</span><span class="step">2 Generate</span><span class="step">3 Quiz</span><span class="step">4 Results</span>
+    <span class="step active">1 Upload</span>
+    <span class="step">2 Generate</span>
+    <span class="step">3 Quiz</span>
+    <span class="step">4 Results</span>
   </div>
+
   <div class="card">
-    <label class="upload" for="file">
-      <div class="icon">↑</div><h3>Upload your study material</h3><div class="muted">PDF, PowerPoint, or Word document</div>
+    <label class="upload-box" for="file">
+      <div class="upload-icon"><i class="fa-solid fa-arrow-up"></i></div>
+      <div class="upload-title">Drag & drop your study material or <span>Browse</span></div>
+      <div class="file-types">
+        <i class="fa-regular fa-file-pdf"></i>
+        <i class="fa-regular fa-file-powerpoint"></i>
+        <i class="fa-regular fa-file-word"></i>
+      </div>
     </label>
     <input id="file" type="file" accept=".pdf,.ppt,.pptx,.doc,.docx">
+    
     <div id="fileBox" class="file"><span id="fileName"></span><span class="muted">Ready</span></div>
-    <div class="settings">
-      <div class="field"><label>Number of questions</label><select id="count"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option><option>40</option><option>50</option></select></div>
-      <div class="field"><label>Difficulty</label><select id="difficulty"><option>Easy</option><option selected>Medium</option><option>Hard</option></select></div>
+
+    <!-- Number of Questions Slider -->
+    <div class="control-group">
+      <label class="control-label">Number of Questions: <span id="countVal">10</span></label>
+      <div class="slider-container">
+        <input type="range" id="countRange" min="5" max="30" step="5" value="10">
+        <div class="slider-labels">
+          <span>5</span><span>10</span><span>20</span><span>30</span>
+        </div>
+      </div>
     </div>
-    <button id="generate" class="btn primary" type="button" disabled>Generate Quiz</button>
+
+    <!-- Difficulty Segmented -->
+    <div class="control-group">
+      <label class="control-label">Difficulty</label>
+      <div class="segmented" id="diffSeg">
+        <button class="segment-btn" type="button" data-val="Easy">Easy</button>
+        <button class="segment-btn active" type="button" data-val="Medium">Medium</button>
+        <button class="segment-btn" type="button" data-val="Hard">Hard</button>
+      </div>
+    </div>
+
+    <!-- Question Types Segmented -->
+    <div class="control-group">
+      <label class="control-label">Question Types</label>
+      <div class="segmented">
+        <button class="segment-btn active" type="button">Multiple Choice</button>
+        <button class="segment-btn" type="button" disabled style="opacity:0.5;cursor:not-allowed">True/False</button>
+        <button class="segment-btn" type="button" disabled style="opacity:0.5;cursor:not-allowed">Short Answer</button>
+      </div>
+    </div>
+
+    <button id="generate" class="btn-submit" type="button" disabled>Generate Quiz Now</button>
     <div id="status" class="note">Choose a file to begin.</div>
   </div>
 </section>
@@ -151,7 +257,7 @@ input[type=file]{display:none}
     <h2>Welcome back</h2><p class="muted">Log in to your AskMe account.</p>
     <div class="field" style="margin-top:22px"><label>Email</label><input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
     <div class="field" style="margin-top:14px"><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Your password"></div>
-    <button id="doLogin" class="btn primary" type="button">Log in</button>
+    <button id="doLogin" class="btn btn-submit" type="button">Log in</button>
     <button id="backFromLogin" class="btn secondary" type="button" style="margin-top:10px">Back</button>
     <div id="loginStatus" class="auth-status"></div>
   </div>
@@ -162,7 +268,7 @@ input[type=file]{display:none}
     <h2>Create your AskMe account</h2><p class="muted">Create an account to keep your exams and results connected to you.</p>
     <div class="field" style="margin-top:22px"><label>Email</label><input id="signupEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
     <div class="field" style="margin-top:14px"><label>Password</label><input id="signupPassword" type="password" autocomplete="new-password" placeholder="At least 6 characters"></div>
-    <button id="createAccountBtn" class="btn primary" type="button">Create account</button>
+    <button id="createAccountBtn" class="btn btn-submit" type="button">Create account</button>
     <button id="backFromSignup" class="btn secondary" type="button" style="margin-top:10px">Back</button>
     <div id="signupStatus" class="auth-status"></div>
   </div>
@@ -189,7 +295,7 @@ input[type=file]{display:none}
     <div class="top"><span id="qNum"></span><span id="qDiff"></span></div>
     <div class="progress"><div id="bar" class="bar"></div></div>
     <h2 id="qText" class="question"></h2><div id="opts" class="options"></div>
-    <div class="quiz-actions"><button id="prev" class="btn secondary" type="button">← Previous</button><button id="next" class="btn primary" type="button" disabled>Next</button></div>
+    <div class="quiz-actions"><button id="prev" class="btn secondary" type="button">← Previous</button><button id="next" class="btn btn-submit" type="button" disabled style="margin-top:0;">Next</button></div>
   </div>
 </section>
 
@@ -219,6 +325,22 @@ input[type=file]{display:none}
   </div>
 </section>
 
+<footer>
+  <div class="footer-links">
+    <a href="#">About Us</a>
+    <a href="#">Contact</a>
+    <a href="#">Pricing</a>
+    <a href="#">Blog</a>
+    <a href="#">Privacy Policy</a>
+    <a href="#">Legal</a>
+  </div>
+  <div class="socials">
+    <i class="fa-brands fa-facebook"></i>
+    <i class="fa-brands fa-x-twitter"></i>
+    <i class="fa-brands fa-youtube"></i>
+  </div>
+</footer>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -240,6 +362,7 @@ if (window.supabase && SUPABASE_PUBLISHABLE_KEY && !SUPABASE_PUBLISHABLE_KEY.inc
 const $ = id => document.getElementById(id);
 let questions = [], answers = {}, current = 0;
 let currentExamId = null;
+let selectedDifficulty = "Medium";
 
 function show(id) {
   document.querySelectorAll(".screen").forEach(x => x.classList.remove("active"));
@@ -291,16 +414,18 @@ function saveQuizToStorage() {
 }
 
 function restoreQuizFromStorage() {
-  const savedQuestions = localStorage.getItem("askme_questions");
-  const savedAnswers = localStorage.getItem("askme_answers");
-  const savedCurrent = localStorage.getItem("askme_current");
-  const activeScreen = localStorage.getItem("askme_active_screen");
+  try {
+    const savedQuestions = localStorage.getItem("askme_questions");
+    const savedAnswers = localStorage.getItem("askme_answers");
+    const savedCurrent = localStorage.getItem("askme_current");
+    const activeScreen = localStorage.getItem("askme_active_screen");
 
-  if (savedQuestions && activeScreen) {
+    if (!savedQuestions || !activeScreen) return false;
+
     const parsedQuestions = safeJsonParse(savedQuestions);
     const parsedAnswers = safeJsonParse(savedAnswers);
 
-    if (parsedQuestions && Array.isArray(parsedQuestions)) {
+    if (Array.isArray(parsedQuestions) && parsedQuestions.length > 0) {
       questions = parsedQuestions;
       answers = parsedAnswers || {};
       current = savedCurrent ? parseInt(savedCurrent, 10) : 0;
@@ -313,11 +438,14 @@ function restoreQuizFromStorage() {
         finish();
         return true;
       }
-    } else {
-      clearQuizStorage();
     }
+    clearQuizStorage();
+    return false;
+  } catch (err) {
+    console.error("Storage restore error:", err);
+    clearQuizStorage();
+    return false;
   }
-  return false;
 }
 
 function clearQuizStorage() {
@@ -336,23 +464,38 @@ function handleHomeClick() {
   }
   clearQuizStorage();
   
-  // إعادة خيارات الرفع لوضعها الطبيعي
   const fileInput = $("file");
   if (fileInput) fileInput.value = "";
   if ($("fileBox")) $("fileBox").classList.remove("show");
   if ($("generate")) {
     $("generate").disabled = true;
-    $("generate").textContent = "Generate Quiz";
+    $("generate").textContent = "Generate Quiz Now";
   }
   if ($("status")) $("status").textContent = "Choose a file to begin.";
   show("home");
 }
 
-/* ---------- Navigation Events ---------- */
+/* ---------- Navigation & Controls UI ---------- */
 $("backFromLogin").onclick = () => show("home");
 $("backFromSignup").onclick = () => show("home");
 $("dashboardHome").onclick = () => show("home");
 if ($("mainLogo")) $("mainLogo").onclick = handleHomeClick;
+
+// Slider Control
+const countRange = $("countRange");
+const countVal = $("countVal");
+if (countRange && countVal) {
+  countRange.oninput = () => { countVal.textContent = countRange.value; };
+}
+
+// Difficulty Segmented Control
+document.querySelectorAll('#diffSeg .segment-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('#diffSeg .segment-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedDifficulty = btn.getAttribute('data-val') || "Medium";
+  };
+});
 
 function authReady() { return !!supabaseClient; }
 
@@ -367,7 +510,7 @@ function missingSupabaseMessage() {
   return "Supabase is not connected yet. Add your real publishable key in the config section.";
 }
 
-/* ---------- Auth UI ---------- */
+/* ---------- Auth UI with Profile Dropdown ---------- */
 function renderAuth(user) {
   const area = $("authArea");
   const isQuizActive = !!localStorage.getItem("askme_active_screen");
@@ -377,7 +520,30 @@ function renderAuth(user) {
     $("loginBtn").onclick = () => show("login");
     $("signupBtn").onclick = () => show("signup");
   } else {
-    area.innerHTML = '<button id="goHomeBtn" class="auth-btn" type="button" style="display:' + (isQuizActive ? "inline-block" : "none") + ';">Home</button><span class="user-email">' + escapeHtml(user.email || "Account") + '</span><button id="dashboardBtn" class="auth-btn" type="button">My AskMe</button><button id="logoutBtn" class="auth-btn" type="button">Log out</button>';
+    const initial = (user.email || "U").charAt(0).toUpperCase();
+    area.innerHTML = `
+      <button id="goHomeBtn" class="auth-btn" type="button" style="display:${isQuizActive ? "inline-block" : "none"};">Home</button>
+      <div class="user-profile" id="profileBtn">
+        <div class="profile-avatar">${initial}</div>
+        <i class="fa-solid fa-chevron-down" style="font-size:10px; color:#64748b;"></i>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <div class="dropdown-header">${escapeHtml(user.email)}</div>
+          <div class="dropdown-item" id="dashboardBtn">My Quizzes</div>
+          <div class="dropdown-item" id="logoutBtn">Log out</div>
+        </div>
+      </div>
+    `;
+
+    const profileBtn = $("profileBtn");
+    const dropdownMenu = $("dropdownMenu");
+    if (profileBtn && dropdownMenu) {
+      profileBtn.onclick = (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle("show");
+      };
+      document.onclick = () => dropdownMenu.classList.remove("show");
+    }
+
     $("dashboardBtn").onclick = () => { loadDashboard(); show("dashboard"); };
     $("logoutBtn").onclick = async () => {
       if (supabaseClient) await supabaseClient.auth.signOut();
@@ -385,7 +551,6 @@ function renderAuth(user) {
     };
   }
 
-  // ربط الأيفنت بشكل إجباري بعد كل إعادة بناء للهيدر
   const goHomeBtn = $("goHomeBtn");
   if (goHomeBtn) goHomeBtn.onclick = handleHomeClick;
 }
@@ -460,8 +625,8 @@ $("generate").onclick = async () => {
 
   const fd = new FormData();
   fd.append("file", f);
-  fd.append("count", $("count").value);
-  fd.append("difficulty", $("difficulty").value);
+  fd.append("count", $("countRange").value || "10");
+  fd.append("difficulty", selectedDifficulty);
 
   try {
     const r = await fetch("/api/generate-quiz", { method: "POST", body: fd });
@@ -479,13 +644,13 @@ $("generate").onclick = async () => {
     answers = {}; current = 0; currentExamId = null;
     saveQuizToStorage();
     
-    $("qDiff").textContent = $("difficulty").value;
+    $("qDiff").textContent = selectedDifficulty;
     show("quiz"); render();
   } catch(e) {
     $("status").textContent = "Error: " + e.message;
   } finally {
     $("generate").disabled = false;
-    $("generate").textContent = "Generate Quiz";
+    $("generate").textContent = "Generate Quiz Now";
   }
 };
 
@@ -668,7 +833,7 @@ $("restart").onclick = () => {
   if ($("fileBox")) $("fileBox").classList.remove("show"); 
   if ($("generate")) {
     $("generate").disabled = true;
-    $("generate").textContent = "Generate Quiz";
+    $("generate").textContent = "Generate Quiz Now";
   }
   if ($("status")) $("status").textContent = "Choose a file to begin.";
   show("home");
