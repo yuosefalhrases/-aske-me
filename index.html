@@ -8,118 +8,95 @@
 
 <style>
 :root{
-  --bg:#f8fafc;--surface:#ffffff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;
-  --primary:#4f46e5;--primary-hover:#4338ca;--violet:#7c3aed;--success:#18875b;--danger:#c83c4a;
-  --primary-gradient:linear-gradient(135deg, #6366f1, #8b5cf6);
-  --shadow-card:0 20px 40px rgba(0, 0, 0, 0.06);
-  --radius:20px;
+--bg:#f8fafc;--surface:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;
+--primary:#4f46e5;--primary-hover:#4338ca;--violet:#7c3aed;--success:#18875b;--danger:#c83c4a;
+--primary-gradient:linear-gradient(135deg,#6366f1,#8b5cf6);
+--shadow-card:0 20px 40px rgba(0,0,0,.06);--radius:20px
 }
-*{box-sizing:border-box;margin:0;padding:0;}
+*{box-sizing:border-box;margin:0;padding:0}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  background:#f1f3f9;color:var(--text);min-height:100vh;
-  -webkit-font-smoothing:antialiased;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+background:#f1f3f9;color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased
 }
-button,input,select{font:inherit}
-button{cursor:pointer}
+button,input,select{font:inherit}button{cursor:pointer}
 .wrap{max-width:850px;margin:auto;padding:20px 16px 65px}
-
-/* Header UI */
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:35px;position:relative}
-.logo{font-size:26px;font-weight:850;color:#1e1b4b;cursor:pointer;letter-spacing:-0.5px}
+.logo{font-size:26px;font-weight:850;color:#1e1b4b;cursor:pointer;letter-spacing:-.5px}
 .logo span{color:var(--primary)}
-
 .auth-area{display:flex;gap:10px;align-items:center;position:relative}
 .auth-btn{
-  border:1px solid var(--border);background:#fff;color:var(--text);border-radius:10px;
-  padding:8px 14px;font-size:13px;font-weight:700;transition:.18s ease;
+border:1px solid var(--border);background:#fff;color:var(--text);border-radius:10px;
+padding:8px 14px;font-size:13px;font-weight:700;transition:.18s ease
 }
 .auth-btn.primary-auth{background:var(--primary);color:#fff;border-color:var(--primary)}
-
 .user-profile{
-  position:relative;display:flex;align-items:center;gap:8px;cursor:pointer;
-  background:#fff;padding:6px 14px;border-radius:30px;border:1px solid var(--border);
-  box-shadow:0 2px 6px rgba(0,0,0,0.03);
+position:relative;display:flex;align-items:center;gap:8px;cursor:pointer;
+background:#fff;padding:6px 14px;border-radius:30px;border:1px solid var(--border);
+box-shadow:0 2px 6px rgba(0,0,0,.03)
 }
 .profile-avatar{
-  width:30px;height:30px;border-radius:50%;background:var(--primary);
-  color:#fff;display:grid;place-items:center;font-weight:bold;font-size:13px;
+width:30px;height:30px;border-radius:50%;background:var(--primary);
+color:#fff;display:grid;place-items:center;font-weight:bold;font-size:13px
 }
 .user-email{font-size:12px;color:var(--text);font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-
 .dropdown-menu{
-  display:none;position:absolute;top:115%;right:0;background:#fff;
-  border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-card);
-  width:190px;z-index:100;overflow:hidden;
+display:none;position:absolute;top:115%;right:0;background:#fff;border:1px solid var(--border);
+border-radius:14px;box-shadow:var(--shadow-card);width:190px;z-index:100;overflow:hidden
 }
 .dropdown-menu.show{display:block}
 .dropdown-header{padding:12px 14px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);word-break:break-all}
 .dropdown-item{padding:11px 14px;font-size:13px;color:var(--text);font-weight:600;cursor:pointer;transition:.15s}
 .dropdown-item:hover{background:#f8fafc;color:var(--primary)}
 
-/* Hero & Steps */
 .hero{text-align:center;margin-bottom:25px}
 .hero h1{font-size:38px;letter-spacing:-1px;line-height:1.15;margin:0 0 12px;font-weight:850;color:#0f172a}
 .hero h1 span{color:var(--primary)}
 .hero p{color:var(--muted);font-size:15px;max-width:520px;margin:auto;line-height:1.5}
-
 .steps{display:flex;gap:8px;justify-content:center;margin-bottom:25px}
 .step{font-size:12px;font-weight:700;padding:6px 16px;border-radius:20px;background:#e2e8f0;color:var(--muted)}
 .step.active{background:#1e1b4b;color:#fff}
 
-/* Card Section */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:30px;box-shadow:var(--shadow-card)}
-
-/* Upload Box UI */
 .upload-box{
-  display:block;border:2px dashed #cbd5e1;border-radius:16px;padding:35px 20px;
-  text-align:center;cursor:pointer;background:#f8fafc;transition:all 0.2s ease;
+display:block;border:2px dashed #cbd5e1;border-radius:16px;padding:35px 20px;text-align:center;
+cursor:pointer;background:#f8fafc;transition:all .2s ease
 }
 .upload-box:hover{border-color:var(--primary);background:#f0fdf4}
 .upload-icon{
-  width:50px;height:50px;margin:0 auto 12px;border-radius:14px;
-  display:grid;place-items:center;font-size:20px;color:var(--primary);background:#e0e7ff;
+width:50px;height:50px;margin:0 auto 12px;border-radius:14px;display:grid;
+place-items:center;font-size:20px;color:var(--primary);background:#e0e7ff
 }
 .upload-title{font-size:16px;font-weight:700;color:#0f172a}
 .upload-title span{color:var(--primary);text-decoration:underline}
 .file-types{display:flex;justify-content:center;gap:10px;margin-top:10px;font-size:18px;color:var(--muted)}
 input[type=file]{display:none}
-
-.file{display:none;margin-top:14px;padding:12px 16px;background:#e0e7ff;border-radius:12px;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;color:var(--primary)}
+.file{
+display:none;margin-top:14px;padding:12px 16px;background:#e0e7ff;border-radius:12px;
+justify-content:space-between;align-items:center;font-size:13px;font-weight:600;color:var(--primary)
+}
 .file.show{display:flex}
-
-/* Controls UI */
 .control-group{margin-top:22px}
 .control-label{display:block;font-weight:700;font-size:13px;margin-bottom:8px;color:#334155}
-
-/* Range Slider */
-.slider-container input[type="range"]{width:100%;accent-color:var(--primary);cursor:pointer}
+.slider-container input[type=range]{width:100%;accent-color:var(--primary);cursor:pointer}
 .slider-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px;font-weight:700}
-
-/* Segmented Buttons */
 .segmented{display:flex;background:#f1f5f9;padding:4px;border-radius:12px;gap:4px}
 .segment-btn{
-  flex:1;padding:10px;border:0;background:transparent;border-radius:8px;
-  font-weight:700;font-size:13px;color:var(--muted);cursor:pointer;transition:all 0.2s;
+flex:1;padding:10px;border:0;background:transparent;border-radius:8px;font-weight:700;
+font-size:13px;color:var(--muted);cursor:pointer;transition:all .2s
 }
 .segment-btn.active{background:#e0e7ff;color:var(--primary)}
-
-/* Primary Action Button */
 .btn-submit{
-  width:100%;border:0;border-radius:30px;padding:16px;font-weight:800;font-size:15px;
-  background:var(--primary-gradient);color:#fff;margin-top:25px;transition:all .2s ease;
-  box-shadow:0 8px 20px rgba(99, 102, 241, 0.3);
+width:100%;border:0;border-radius:30px;padding:16px;font-weight:800;font-size:15px;
+background:var(--primary-gradient);color:#fff;margin-top:25px;transition:all .2s ease;
+box-shadow:0 8px 20px rgba(99,102,241,.3)
 }
-.btn-submit:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 24px rgba(99, 102, 241, 0.4)}
-.btn-submit:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none;background:#cbd5e1}
-
+.btn-submit:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 24px rgba(99,102,241,.4)}
+.btn-submit:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;background:#cbd5e1}
 .btn{width:100%;border:0;border-radius:12px;padding:14px;font-weight:780;font-size:14px;transition:.18s ease}
 .secondary{background:#f0efff;color:#4d46b8}
 .note{text-align:center;color:#8a92a3;font-size:12px;margin-top:14px;min-height:18px}
-
 .screen{display:none}.screen.active{display:block}
-.auth-card{max-width:520px;margin:auto}
-.auth-card h2{text-align:center;margin-top:0}
+.auth-card{max-width:520px;margin:auto}.auth-card h2{text-align:center;margin-top:0}
 .auth-card>.muted{text-align:center;line-height:1.5}
 .auth-status{text-align:center;font-size:13px;margin-top:12px;min-height:20px;color:var(--muted)}
 .auth-status.success{color:var(--success)}.auth-status.error{color:var(--danger)}
@@ -129,18 +106,21 @@ input[type=file]{display:none}
 .dash-stat strong{font-size:24px;display:block}.dash-stat span{font-size:12px;color:var(--muted)}
 .empty{text-align:center;padding:35px 15px;color:var(--muted);border:1px dashed #dfe1ea;border-radius:15px}
 
-/* Quiz & Results UI */
 .top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-weight:700}
 .progress{height:7px;background:#e9eaf1;border-radius:20px;margin:12px 0 29px;overflow:hidden}
 .bar{height:100%;background:var(--primary-gradient);border-radius:20px}
 .question{font-size:24px;line-height:1.38;letter-spacing:-.5px;margin:0 0 22px}
 .options{display:grid;gap:11px}
-.option{padding:16px;text-align:left;border:1px solid #e0e3eb;background:#fff;border-radius:13px;font-weight:650;color:var(--text);cursor:pointer}
+.option{
+padding:16px;text-align:left;border:1px solid #e0e3eb;background:#fff;border-radius:13px;
+font-weight:650;color:var(--text);cursor:pointer
+}
 .option.selected{background:#eeecff;border-color:#6b63df}
 .quiz-actions{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:18px}
 .quiz-actions .btn{margin-top:0}
 .result{text-align:center}
-.score{font-size:58px;font-weight:850;letter-spacing:-2px;background:var(--primary-gradient);-webkit-background-clip:text;background-clip:text;color:transparent}
+.score{font-size:58px;font-weight:850;letter-spacing:-2px;background:var(--primary-gradient);
+-webkit-background-clip:text;background-clip:text;color:transparent}
 .percent{font-size:18px;font-weight:800;color:#5e6678;margin-top:-4px}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}
 .stat{background:#f7f7fb;border:1px solid #ececf2;border-radius:14px;padding:15px}
@@ -157,7 +137,8 @@ input[type=file]{display:none}
 .analysis-fill{height:100%;background:var(--primary-gradient);border-radius:99px}
 .review{text-align:left;margin-top:23px}
 .review-item{border:1px solid #e3e6ed;border-radius:15px;padding:17px;margin:11px 0;background:#fff}
-.review-item.correct{border-left:4px solid var(--success)}.review-item.incorrect{border-left:4px solid var(--danger)}
+.review-item.correct{border-left:4px solid var(--success)}
+.review-item.incorrect{border-left:4px solid var(--danger)}
 .review-status{font-size:12px;font-weight:850;margin-bottom:8px}
 .correct-text{color:var(--success)}.incorrect-text{color:var(--danger)}
 .answer{margin:8px 0;line-height:1.45}.explanation{line-height:1.55;color:#394154}
@@ -166,15 +147,27 @@ input[type=file]{display:none}
 .share-box button{width:auto;padding:0 16px;margin:0}
 .small-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 
-/* Footer UI */
+/* Footer */
 footer{margin-top:50px;text-align:center;color:var(--muted);font-size:13px}
 .footer-links{display:flex;justify-content:center;gap:18px;margin-bottom:15px;flex-wrap:wrap}
 .footer-links a{color:var(--muted);text-decoration:none;font-weight:600}
-.socials{display:flex;justify-content:center;gap:18px;font-size:16px}
+.socials{display:flex;justify-content:center;gap:20px;font-size:19px}
+.socials a{
+color:var(--muted);
+text-decoration:none;
+transition:all .2s ease;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+}
+.socials a:hover{color:var(--primary);transform:translateY(-2px)}
 
 @media(max-width:650px){
-  .wrap{padding:16px 12px 40px}.hero h1{font-size:28px}.analysis-grid,.dashboard-grid{grid-template-columns:1fr}
-  .card{padding:20px;border-radius:18px}.question{font-size:20px}
+.wrap{padding:16px 12px 40px}
+.hero h1{font-size:28px}
+.analysis-grid,.dashboard-grid{grid-template-columns:1fr}
+.card{padding:20px;border-radius:18px}
+.question{font-size:20px}
 }
 </style>
 </head>
@@ -183,666 +176,829 @@ footer{margin-top:50px;text-align:center;color:var(--muted);font-size:13px}
 <div class="wrap">
 
 <header>
-  <div class="logo" id="mainLogo">Ask<span>Me</span></div>
-  <div id="authArea" class="auth-area">
-    <!-- Auth Buttons or User Profile will render dynamically -->
-  </div>
+<div class="logo" id="mainLogo">Ask<span>Me</span></div>
+<div id="authArea" class="auth-area"></div>
 </header>
 
 <section id="home" class="screen active">
-  <div class="hero">
-    <h1>Transform Your Notes<br>into Practice Quizzes.<br>Smart Learning with <span>AskMe.</span></h1>
-    <p>Leverage AI to test your knowledge. Practice makes perfect.</p>
-  </div>
+<div class="hero">
+<h1>Transform Your Notes<br>into Practice Quizzes.<br>Smart Learning with <span>AskMe.</span></h1>
+<p>Leverage AI to test your knowledge. Practice makes perfect.</p>
+</div>
 
-  <div class="steps">
-    <span class="step active">1 Upload</span>
-    <span class="step">2 Generate</span>
-    <span class="step">3 Quiz</span>
-    <span class="step">4 Results</span>
-  </div>
+<div class="steps">
+<span class="step active">1 Upload</span>
+<span class="step">2 Generate</span>
+<span class="step">3 Quiz</span>
+<span class="step">4 Results</span>
+</div>
 
-  <div class="card">
-    <label class="upload-box" for="file">
-      <div class="upload-icon"><i class="fa-solid fa-arrow-up"></i></div>
-      <div class="upload-title">Drag & drop your study material or <span>Browse</span></div>
-      <div class="file-types">
-        <i class="fa-regular fa-file-pdf"></i>
-        <i class="fa-regular fa-file-powerpoint"></i>
-        <i class="fa-regular fa-file-word"></i>
-      </div>
-    </label>
-    <input id="file" type="file" accept=".pdf,.ppt,.pptx,.doc,.docx">
-    
-    <div id="fileBox" class="file"><span id="fileName"></span><span class="muted">Ready</span></div>
+<div class="card">
+<label class="upload-box" for="file">
+<div class="upload-icon"><i class="fa-solid fa-arrow-up"></i></div>
+<div class="upload-title">Drag & drop your study material or <span>Browse</span></div>
+<div class="file-types">
+<i class="fa-regular fa-file-pdf"></i>
+<i class="fa-regular fa-file-powerpoint"></i>
+<i class="fa-regular fa-file-word"></i>
+</div>
+</label>
 
-    <!-- Number of Questions Slider -->
-    <div class="control-group">
-      <label class="control-label">Number of Questions: <span id="countVal">10</span></label>
-      <div class="slider-container">
-        <input type="range" id="countRange" min="5" max="30" step="5" value="10">
-        <div class="slider-labels">
-          <span>5</span><span>10</span><span>20</span><span>30</span>
-        </div>
-      </div>
-    </div>
+<input id="file" type="file" accept=".pdf,.ppt,.pptx,.doc,.docx">
+<div id="fileBox" class="file">
+<span id="fileName"></span><span class="muted">Ready</span>
+</div>
 
-    <!-- Difficulty Segmented -->
-    <div class="control-group">
-      <label class="control-label">Difficulty</label>
-      <div class="segmented" id="diffSeg">
-        <button class="segment-btn" type="button" data-val="Easy">Easy</button>
-        <button class="segment-btn active" type="button" data-val="Medium">Medium</button>
-        <button class="segment-btn" type="button" data-val="Hard">Hard</button>
-      </div>
-    </div>
+<div class="control-group">
+<label class="control-label">Number of Questions: <span id="countVal">10</span></label>
+<div class="slider-container">
+<input type="range" id="countRange" min="5" max="30" step="5" value="10">
+<div class="slider-labels">
+<span>5</span><span>10</span><span>20</span><span>30</span>
+</div>
+</div>
+</div>
 
-    <!-- Question Types Segmented -->
-    <div class="control-group">
-      <label class="control-label">Question Types</label>
-      <div class="segmented">
-        <button class="segment-btn active" type="button">Multiple Choice</button>
-        <button class="segment-btn" type="button" disabled style="opacity:0.5;cursor:not-allowed">True/False</button>
-        <button class="segment-btn" type="button" disabled style="opacity:0.5;cursor:not-allowed">Short Answer</button>
-      </div>
-    </div>
+<div class="control-group">
+<label class="control-label">Difficulty</label>
+<div class="segmented" id="diffSeg">
+<button class="segment-btn" type="button" data-val="Easy">Easy</button>
+<button class="segment-btn active" type="button" data-val="Medium">Medium</button>
+<button class="segment-btn" type="button" data-val="Hard">Hard</button>
+</div>
+</div>
 
-    <button id="generate" class="btn-submit" type="button" disabled>Generate Quiz Now</button>
-    <div id="status" class="note">Choose a file to begin.</div>
-  </div>
+<div class="control-group">
+<label class="control-label">Question Types</label>
+<div class="segmented">
+<button class="segment-btn active" type="button">Multiple Choice</button>
+<button class="segment-btn" type="button" disabled style="opacity:.5;cursor:not-allowed">True/False</button>
+<button class="segment-btn" type="button" disabled style="opacity:.5;cursor:not-allowed">Short Answer</button>
+</div>
+</div>
+
+<button id="generate" class="btn-submit" type="button" disabled>Generate Quiz Now</button>
+<div id="status" class="note">Choose a file to begin.</div>
+</div>
 </section>
 
 <section id="login" class="screen">
-  <div class="card auth-card">
-    <h2>Welcome back</h2><p class="muted">Log in to your AskMe account.</p>
-    <div class="field" style="margin-top:22px"><label>Email</label><input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
-    <div class="field" style="margin-top:14px"><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Your password"></div>
-    <button id="doLogin" class="btn btn-submit" type="button">Log in</button>
-    <button id="backFromLogin" class="btn secondary" type="button" style="margin-top:10px">Back</button>
-    <div id="loginStatus" class="auth-status"></div>
-  </div>
+<div class="card auth-card">
+<h2>Welcome back</h2>
+<p class="muted">Log in to your AskMe account.</p>
+<div class="field" style="margin-top:22px">
+<label>Email</label>
+<input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com">
+</div>
+<div class="field" style="margin-top:14px">
+<label>Password</label>
+<input id="loginPassword" type="password" autocomplete="current-password" placeholder="Your password">
+</div>
+<button id="doLogin" class="btn btn-submit" type="button">Log in</button>
+<button id="backFromLogin" class="btn secondary" type="button" style="margin-top:10px">Back</button>
+<div id="loginStatus" class="auth-status"></div>
+</div>
 </section>
 
 <section id="signup" class="screen">
-  <div class="card auth-card">
-    <h2>Create your AskMe account</h2><p class="muted">Create an account to keep your exams and results connected to you.</p>
-    <div class="field" style="margin-top:22px"><label>Email</label><input id="signupEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
-    <div class="field" style="margin-top:14px"><label>Password</label><input id="signupPassword" type="password" autocomplete="new-password" placeholder="At least 6 characters"></div>
-    <button id="createAccountBtn" class="btn btn-submit" type="button">Create account</button>
-    <button id="backFromSignup" class="btn secondary" type="button" style="margin-top:10px">Back</button>
-    <div id="signupStatus" class="auth-status"></div>
-  </div>
+<div class="card auth-card">
+<h2>Create your AskMe account</h2>
+<p class="muted">Create an account to keep your exams and results connected to you.</p>
+<div class="field" style="margin-top:22px">
+<label>Email</label>
+<input id="signupEmail" type="email" autocomplete="email" placeholder="you@example.com">
+</div>
+<div class="field" style="margin-top:14px">
+<label>Password</label>
+<input id="signupPassword" type="password" autocomplete="new-password" placeholder="At least 6 characters">
+</div>
+<button id="createAccountBtn" class="btn btn-submit" type="button">Create account</button>
+<button id="backFromSignup" class="btn secondary" type="button" style="margin-top:10px">Back</button>
+<div id="signupStatus" class="auth-status"></div>
+</div>
 </section>
 
 <section id="dashboard" class="screen">
-  <div class="card">
-    <div class="dashboard-head">
-      <div><h2>My AskMe</h2><div id="dashboardEmail" class="muted"></div></div>
-      <button id="dashboardHome" class="auth-btn" type="button">Home</button>
-    </div>
-    <div class="dashboard-grid">
-      <div class="dash-stat"><strong id="dashExams">0</strong><span>Saved exams</span></div>
-      <div class="dash-stat"><strong id="dashAttempts">0</strong><span>Attempts</span></div>
-      <div class="dash-stat"><strong id="dashAverage">—</strong><span>Average score</span></div>
-    </div>
-    <div id="examList" class="empty">Your saved exams will appear here.</div>
-  </div>
+<div class="card">
+<div class="dashboard-head">
+<div><h2>My AskMe</h2><div id="dashboardEmail" class="muted"></div></div>
+<button id="dashboardHome" class="auth-btn" type="button">Home</button>
+</div>
+<div class="dashboard-grid">
+<div class="dash-stat"><strong id="dashExams">0</strong><span>Saved exams</span></div>
+<div class="dash-stat"><strong id="dashAttempts">0</strong><span>Attempts</span></div>
+<div class="dash-stat"><strong id="dashAverage">—</strong><span>Average score</span></div>
+</div>
+<div id="examList" class="empty">Your saved exams will appear here.</div>
+</div>
 </section>
 
 <section id="quiz" class="screen">
-  <div class="steps"><span class="step">1 Upload</span><span class="step">2 Generate</span><span class="step active">3 Quiz</span><span class="step">4 Results</span></div>
-  <div class="card">
-    <div class="top"><span id="qNum"></span><span id="qDiff"></span></div>
-    <div class="progress"><div id="bar" class="bar"></div></div>
-    <h2 id="qText" class="question"></h2><div id="opts" class="options"></div>
-    <div class="quiz-actions"><button id="prev" class="btn secondary" type="button">← Previous</button><button id="next" class="btn btn-submit" type="button" disabled style="margin-top:0;">Next</button></div>
-  </div>
+<div class="steps">
+<span class="step">1 Upload</span>
+<span class="step">2 Generate</span>
+<span class="step active">3 Quiz</span>
+<span class="step">4 Results</span>
+</div>
+<div class="card">
+<div class="top"><span id="qNum"></span><span id="qDiff"></span></div>
+<div class="progress"><div id="bar" class="bar"></div></div>
+<h2 id="qText" class="question"></h2>
+<div id="opts" class="options"></div>
+<div class="quiz-actions">
+<button id="prev" class="btn secondary" type="button">← Previous</button>
+<button id="next" class="btn btn-submit" type="button" disabled style="margin-top:0">Next</button>
+</div>
+</div>
 </section>
 
 <section id="result" class="screen">
-  <div class="steps"><span class="step">1 Upload</span><span class="step">2 Generate</span><span class="step">3 Quiz</span><span class="step active">4 Results</span></div>
-  <div class="card result">
-    <div class="muted">Your score</div><div id="score" class="score"></div><div id="percent" class="percent"></div>
-    <div class="stats"><div class="stat"><strong id="correctCount">0</strong><span>Correct</span></div><div class="stat"><strong id="wrongCount">0</strong><span>Incorrect</span></div></div>
+<div class="steps">
+<span class="step">1 Upload</span>
+<span class="step">2 Generate</span>
+<span class="step">3 Quiz</span>
+<span class="step active">4 Results</span>
+</div>
 
-    <div class="small-actions">
-      <button id="saveExamBtn" class="btn secondary" type="button">Save exam</button>
-      <button id="shareExamBtn" class="btn secondary" type="button">Create share link</button>
-    </div>
-    <div id="shareBox" class="share-box" style="display:none">
-      <input id="shareLink" readonly>
-      <button id="copyShareBtn" class="btn secondary" type="button">Copy</button>
-    </div>
-    <div id="saveStatus" class="note"></div>
+<div class="card result">
+<div class="muted">Your score</div>
+<div id="score" class="score"></div>
+<div id="percent" class="percent"></div>
 
-    <div class="analysis">
-      <h3>Performance analysis</h3><p class="analysis-sub">A quick breakdown of how you performed across topics and question difficulty.</p>
-      <div class="analysis-grid"><div class="analysis-card"><h4>By topic</h4><div id="topicAnalysis"></div></div><div class="analysis-card"><h4>By difficulty</h4><div id="difficultyAnalysis"></div></div></div>
-    </div>
+<div class="stats">
+<div class="stat"><strong id="correctCount">0</strong><span>Correct</span></div>
+<div class="stat"><strong id="wrongCount">0</strong><span>Incorrect</span></div>
+</div>
 
-    <div id="review" class="review"></div>
-    <button id="restart" class="btn secondary" type="button">Start another quiz</button>
-  </div>
+<div class="small-actions">
+<button id="saveExamBtn" class="btn secondary" type="button">Save exam</button>
+<button id="shareExamBtn" class="btn secondary" type="button">Create share link</button>
+</div>
+
+<div id="shareBox" class="share-box" style="display:none">
+<input id="shareLink" readonly>
+<button id="copyShareBtn" class="btn secondary" type="button">Copy</button>
+</div>
+
+<div id="saveStatus" class="note"></div>
+
+<div class="analysis">
+<h3>Performance analysis</h3>
+<p class="analysis-sub">A quick breakdown of how you performed across topics and question difficulty.</p>
+<div class="analysis-grid">
+<div class="analysis-card"><h4>By topic</h4><div id="topicAnalysis"></div></div>
+<div class="analysis-card"><h4>By difficulty</h4><div id="difficultyAnalysis"></div></div>
+</div>
+</div>
+
+<div id="review" class="review"></div>
+<button id="restart" class="btn secondary" type="button">Start another quiz</button>
+</div>
 </section>
 
 <footer>
-  <div class="footer-links">
-    <a href="#">About Us</a>
-    <a href="#">Contact</a>
-    <a href="#">Pricing</a>
-    <a href="#">Blog</a>
-    <a href="#">Privacy Policy</a>
-    <a href="#">Legal</a>
-  </div>
-  <div class="socials">
-    <i class="fa-brands fa-facebook"></i>
-    <i class="fa-brands fa-x-twitter"></i>
-    <i class="fa-brands fa-youtube"></i>
-  </div>
+<div class="footer-links">
+<a href="#">About Us</a>
+<a href="#">Contact</a>
+<a href="#">Pricing</a>
+<a href="#">Blog</a>
+<a href="#">Privacy Policy</a>
+<a href="#">Legal</a>
+</div>
+
+<!-- Social Media -->
+<div class="socials">
+
+<a href="https://www.facebook.com/share/1GPaw3JRog/?mibextid=wwXIfr"
+target="_blank"
+rel="noopener noreferrer"
+aria-label="Facebook">
+<i class="fa-brands fa-facebook"></i>
+</a>
+
+<a href="https://www.instagram.com/yo.art.05?stkn=NXJzb2pndmlrZHIw"
+target="_blank"
+rel="noopener noreferrer"
+aria-label="Instagram">
+<i class="fa-brands fa-instagram"></i>
+</a>
+
+</div>
 </footer>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const SUPABASE_URL = "https://lxyfhgkuxpsrcofwfnml.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_N6uiThZDHkOv_xlZlY236g_BBvvnCDe";
-let supabaseClient = null;
-
-if (window.supabase && SUPABASE_PUBLISHABLE_KEY && !SUPABASE_PUBLISHABLE_KEY.includes("YOUR_SUPABASE")) {
-  try {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-  } catch(e) {
-    console.error("Supabase configuration error:", e);
-  }
-}
-</script>
 
 <script>
-const $ = id => document.getElementById(id);
-let questions = [], answers = {}, current = 0;
-let currentExamId = null;
-let selectedDifficulty = "Medium";
+const SUPABASE_URL="https://lxyfhgkuxpsrcofwfnml.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_N6uiThZDHkOv_xlZlY236g_BBvvnCDe";
+let supabaseClient=null;
 
-function show(id) {
-  document.querySelectorAll(".screen").forEach(x => x.classList.remove("active"));
-  const target = $(id);
-  if (target) target.classList.add("active");
-  
-  const goHomeBtn = $("goHomeBtn");
-  if (goHomeBtn) {
-    goHomeBtn.style.display = (id === "quiz" || id === "result") ? "inline-block" : "none";
-  }
-
-  if (id === "quiz" || id === "result") {
-    localStorage.setItem("askme_active_screen", id);
-  } else if (id === "home") {
-    localStorage.removeItem("askme_active_screen");
-  }
-
-  window.scrollTo(0, 0);
+if(window.supabase&&SUPABASE_PUBLISHABLE_KEY&&!SUPABASE_PUBLISHABLE_KEY.includes("YOUR_SUPABASE")){
+try{
+supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+}catch(e){console.error("Supabase configuration error:",e)}
 }
 
-function escapeHtml(v) {
-  return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+const $=id=>document.getElementById(id);
+let questions=[],answers={},current=0,currentExamId=null;
+let selectedDifficulty="Medium";
+
+function show(id){
+document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
+const target=$(id);
+if(target)target.classList.add("active");
+
+const goHomeBtn=$("goHomeBtn");
+if(goHomeBtn){
+goHomeBtn.style.display=(id==="quiz"||id==="result")?"inline-block":"none";
 }
 
-/* ---------- Safe JSON Parser ---------- */
-function safeJsonParse(str) {
-  if (!str) return null;
-  try {
-    let cleaned = str.trim();
-    if (cleaned.startsWith("```json")) {
-      cleaned = cleaned.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-    } else if (cleaned.startsWith("```")) {
-      cleaned = cleaned.replace(/^```\s*/, "").replace(/\s*```$/, "");
-    }
-    return JSON.parse(cleaned);
-  } catch (e) {
-    console.error("Safe JSON Parsing Failed:", e);
-    return null;
-  }
+if(id==="quiz"||id==="result"){
+localStorage.setItem("askme_active_screen",id);
+}else if(id==="home"){
+localStorage.removeItem("askme_active_screen");
 }
 
-/* ---------- LocalStorage Management ---------- */
-function saveQuizToStorage() {
-  if (questions && questions.length > 0) {
-    localStorage.setItem("askme_questions", JSON.stringify(questions));
-    localStorage.setItem("askme_answers", JSON.stringify(answers));
-    localStorage.setItem("askme_current", current.toString());
-  }
+window.scrollTo(0,0);
 }
 
-function restoreQuizFromStorage() {
-  try {
-    const savedQuestions = localStorage.getItem("askme_questions");
-    const savedAnswers = localStorage.getItem("askme_answers");
-    const savedCurrent = localStorage.getItem("askme_current");
-    const activeScreen = localStorage.getItem("askme_active_screen");
-
-    if (!savedQuestions || !activeScreen) return false;
-
-    const parsedQuestions = safeJsonParse(savedQuestions);
-    const parsedAnswers = safeJsonParse(savedAnswers);
-
-    if (Array.isArray(parsedQuestions) && parsedQuestions.length > 0) {
-      questions = parsedQuestions;
-      answers = parsedAnswers || {};
-      current = savedCurrent ? parseInt(savedCurrent, 10) : 0;
-
-      if (activeScreen === "quiz") {
-        show("quiz");
-        render();
-        return true;
-      } else if (activeScreen === "result") {
-        finish();
-        return true;
-      }
-    }
-    clearQuizStorage();
-    return false;
-  } catch (err) {
-    console.error("Storage restore error:", err);
-    clearQuizStorage();
-    return false;
-  }
+function escapeHtml(v){
+return String(v??"")
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
 }
 
-function clearQuizStorage() {
-  questions = []; answers = {}; current = 0; currentExamId = null;
-  localStorage.removeItem("askme_questions");
-  localStorage.removeItem("askme_answers");
-  localStorage.removeItem("askme_current");
-  localStorage.removeItem("askme_active_screen");
+function safeJsonParse(str){
+if(!str)return null;
+try{
+let cleaned=str.trim();
+if(cleaned.startsWith("```json")){
+cleaned=cleaned.replace(/^```json\s*/,"").replace(/\s*```$/,"");
+}else if(cleaned.startsWith("```")){
+cleaned=cleaned.replace(/^```\s*/,"").replace(/\s*```$/,"");
+}
+return JSON.parse(cleaned);
+}catch(e){
+console.error("Safe JSON Parsing Failed:",e);
+return null;
 }
 
-function handleHomeClick() {
-  if (questions.length > 0 && localStorage.getItem("askme_active_screen") === "quiz") {
-    if (!confirm("Are you sure you want to go Home? Your quiz progress will be reset.")) {
-      return;
-    }
-  }
-  clearQuizStorage();
-  
-  const fileInput = $("file");
-  if (fileInput) fileInput.value = "";
-  if ($("fileBox")) $("fileBox").classList.remove("show");
-  if ($("generate")) {
-    $("generate").disabled = true;
-    $("generate").textContent = "Generate Quiz Now";
-  }
-  if ($("status")) $("status").textContent = "Choose a file to begin.";
-  show("home");
+function saveQuizToStorage(){
+if(questions&&questions.length>0){
+localStorage.setItem("askme_questions",JSON.stringify(questions));
+localStorage.setItem("askme_answers",JSON.stringify(answers));
+localStorage.setItem("askme_current",current.toString());
+}
 }
 
-/* ---------- Navigation & Controls UI ---------- */
-$("backFromLogin").onclick = () => show("home");
-$("backFromSignup").onclick = () => show("home");
-$("dashboardHome").onclick = () => show("home");
-if ($("mainLogo")) $("mainLogo").onclick = handleHomeClick;
+function restoreQuizFromStorage(){
+try{
+const savedQuestions=localStorage.getItem("askme_questions");
+const savedAnswers=localStorage.getItem("askme_answers");
+const savedCurrent=localStorage.getItem("askme_current");
+const activeScreen=localStorage.getItem("askme_active_screen");
 
-// Slider Control
-const countRange = $("countRange");
-const countVal = $("countVal");
-if (countRange && countVal) {
-  countRange.oninput = () => { countVal.textContent = countRange.value; };
+if(!savedQuestions||!activeScreen)return false;
+
+const parsedQuestions=safeJsonParse(savedQuestions);
+const parsedAnswers=safeJsonParse(savedAnswers);
+
+if(Array.isArray(parsedQuestions)&&parsedQuestions.length>0){
+questions=parsedQuestions;
+answers=parsedAnswers||{};
+current=savedCurrent?parseInt(savedCurrent,10):0;
+
+if(activeScreen==="quiz"){
+show("quiz");render();return true;
+}else if(activeScreen==="result"){
+finish();return true;
+}
 }
 
-// Difficulty Segmented Control
-document.querySelectorAll('#diffSeg .segment-btn').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll('#diffSeg .segment-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedDifficulty = btn.getAttribute('data-val') || "Medium";
-  };
+clearQuizStorage();
+return false;
+}catch(err){
+console.error("Storage restore error:",err);
+clearQuizStorage();
+return false;
+}
+}
+
+function clearQuizStorage(){
+questions=[];answers={};current=0;currentExamId=null;
+localStorage.removeItem("askme_questions");
+localStorage.removeItem("askme_answers");
+localStorage.removeItem("askme_current");
+localStorage.removeItem("askme_active_screen");
+}
+
+function handleHomeClick(){
+if(questions.length>0&&localStorage.getItem("askme_active_screen")==="quiz"){
+if(!confirm("Are you sure you want to go Home? Your quiz progress will be reset."))return;
+}
+clearQuizStorage();
+
+const fileInput=$("file");
+if(fileInput)fileInput.value="";
+if($("fileBox"))$("fileBox").classList.remove("show");
+if($("generate")){
+$("generate").disabled=true;
+$("generate").textContent="Generate Quiz Now";
+}
+if($("status"))$("status").textContent="Choose a file to begin.";
+show("home");
+}
+
+$("backFromLogin").onclick=()=>show("home");
+$("backFromSignup").onclick=()=>show("home");
+$("dashboardHome").onclick=()=>show("home");
+if($("mainLogo"))$("mainLogo").onclick=handleHomeClick;
+
+const countRange=$("countRange");
+const countVal=$("countVal");
+
+if(countRange&&countVal){
+countRange.oninput=()=>{countVal.textContent=countRange.value};
+}
+
+document.querySelectorAll("#diffSeg .segment-btn").forEach(btn=>{
+btn.onclick=()=>{
+document.querySelectorAll("#diffSeg .segment-btn").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+selectedDifficulty=btn.getAttribute("data-val")||"Medium";
+};
 });
 
-function authReady() { return !!supabaseClient; }
+function authReady(){return !!supabaseClient}
 
-function setStatus(id, message, type = "") {
-  const el = $(id);
-  if (!el) return;
-  el.textContent = message;
-  el.className = (id === "signupStatus" || id === "loginStatus" ? "auth-status" : "note") + (type ? " " + type : "");
+function setStatus(id,message,type=""){
+const el=$(id);
+if(!el)return;
+el.textContent=message;
+el.className=(id==="signupStatus"||id==="loginStatus"?"auth-status":"note")+(type?" "+type:"");
 }
 
-function missingSupabaseMessage() {
-  return "Supabase is not connected yet. Add your real publishable key in the config section.";
+function missingSupabaseMessage(){
+return "Supabase is not connected yet. Add your real publishable key in the config section.";
 }
 
-/* ---------- Auth UI with Profile Dropdown ---------- */
-function renderAuth(user) {
-  const area = $("authArea");
-  const isQuizActive = !!localStorage.getItem("askme_active_screen");
-  
-  if (!user) {
-    area.innerHTML = '<button id="goHomeBtn" class="auth-btn" type="button" style="display:' + (isQuizActive ? "inline-block" : "none") + ';">Home</button><button id="loginBtn" class="auth-btn" type="button">Log in</button><button id="signupBtn" class="auth-btn primary-auth" type="button">Sign up</button>';
-    $("loginBtn").onclick = () => show("login");
-    $("signupBtn").onclick = () => show("signup");
-  } else {
-    const initial = (user.email || "U").charAt(0).toUpperCase();
-    area.innerHTML = `
-      <button id="goHomeBtn" class="auth-btn" type="button" style="display:${isQuizActive ? "inline-block" : "none"};">Home</button>
-      <div class="user-profile" id="profileBtn">
-        <div class="profile-avatar">${initial}</div>
-        <i class="fa-solid fa-chevron-down" style="font-size:10px; color:#64748b;"></i>
-        <div class="dropdown-menu" id="dropdownMenu">
-          <div class="dropdown-header">${escapeHtml(user.email)}</div>
-          <div class="dropdown-item" id="dashboardBtn">My Quizzes</div>
-          <div class="dropdown-item" id="logoutBtn">Log out</div>
-        </div>
-      </div>
-    `;
+function renderAuth(user){
+const area=$("authArea");
+const isQuizActive=!!localStorage.getItem("askme_active_screen");
 
-    const profileBtn = $("profileBtn");
-    const dropdownMenu = $("dropdownMenu");
-    if (profileBtn && dropdownMenu) {
-      profileBtn.onclick = (e) => {
-        e.stopPropagation();
-        dropdownMenu.classList.toggle("show");
-      };
-      document.onclick = () => dropdownMenu.classList.remove("show");
-    }
+if(!user){
+area.innerHTML=
+'<button id="goHomeBtn" class="auth-btn" type="button" style="display:'+
+(isQuizActive?"inline-block":"none")+
+';">Home</button>'+
+'<button id="loginBtn" class="auth-btn" type="button">Log in</button>'+
+'<button id="signupBtn" class="auth-btn primary-auth" type="button">Sign up</button>';
 
-    $("dashboardBtn").onclick = () => { loadDashboard(); show("dashboard"); };
-    $("logoutBtn").onclick = async () => {
-      if (supabaseClient) await supabaseClient.auth.signOut();
-      show("home");
-    };
-  }
+$("loginBtn").onclick=()=>show("login");
+$("signupBtn").onclick=()=>show("signup");
 
-  const goHomeBtn = $("goHomeBtn");
-  if (goHomeBtn) goHomeBtn.onclick = handleHomeClick;
+}else{
+const initial=(user.email||"U").charAt(0).toUpperCase();
+
+area.innerHTML=`
+<button id="goHomeBtn" class="auth-btn" type="button" style="display:${isQuizActive?"inline-block":"none"};">Home</button>
+<div class="user-profile" id="profileBtn">
+<div class="profile-avatar">${initial}</div>
+<i class="fa-solid fa-chevron-down" style="font-size:10px;color:#64748b;"></i>
+<div class="dropdown-menu" id="dropdownMenu">
+<div class="dropdown-header">${escapeHtml(user.email)}</div>
+<div class="dropdown-item" id="dashboardBtn">My Quizzes</div>
+<div class="dropdown-item" id="logoutBtn">Log out</div>
+</div>
+</div>`;
+
+const profileBtn=$("profileBtn");
+const dropdownMenu=$("dropdownMenu");
+
+if(profileBtn&&dropdownMenu){
+profileBtn.onclick=e=>{
+e.stopPropagation();
+dropdownMenu.classList.toggle("show");
+};
+document.onclick=()=>dropdownMenu.classList.remove("show");
 }
 
-async function initAuth() {
-  if (!authReady()) {
-    renderAuth(null);
-    return;
-  }
-  const { data } = await supabaseClient.auth.getSession();
-  renderAuth(data.session?.user || null);
-  supabaseClient.auth.onAuthStateChange((_event, session) => renderAuth(session?.user || null));
+$("dashboardBtn").onclick=()=>{
+loadDashboard();
+show("dashboard");
+};
+
+$("logoutBtn").onclick=async()=>{
+if(supabaseClient)await supabaseClient.auth.signOut();
+show("home");
+};
 }
+
+const goHomeBtn=$("goHomeBtn");
+if(goHomeBtn)goHomeBtn.onclick=handleHomeClick;
+}
+
+async function initAuth(){
+if(!authReady()){
+renderAuth(null);
+return;
+}
+
+const{data}=await supabaseClient.auth.getSession();
+renderAuth(data.session?.user||null);
+
+supabaseClient.auth.onAuthStateChange((_event,session)=>{
+renderAuth(session?.user||null);
+});
+}
+
 initAuth();
 
-/* ---------- Sign up ---------- */
-$("createAccountBtn").onclick = async () => {
-  const email = $("signupEmail").value.trim();
-  const password = $("signupPassword").value;
+$("createAccountBtn").onclick=async()=>{
+const email=$("signupEmail").value.trim();
+const password=$("signupPassword").value;
 
-  if (!email || !password) { setStatus("signupStatus", "Please enter your email and password.", "error"); return; }
-  if (password.length < 6) { setStatus("signupStatus", "Password must be at least 6 characters.", "error"); return; }
-  if (!authReady()) { setStatus("signupStatus", missingSupabaseMessage(), "error"); return; }
-
-  setStatus("signupStatus", "Creating account...");
-  const { data, error } = await supabaseClient.auth.signUp({ email, password });
-
-  if (error) { setStatus("signupStatus", error.message, "error"); return; }
-
-  if (data.session) {
-    setStatus("signupStatus", "Account created successfully.", "success");
-    setTimeout(() => show("home"), 700);
-  } else {
-    setStatus("signupStatus", "Account created. Check your email to confirm your account.", "success");
-  }
-};
-
-/* ---------- Login ---------- */
-$("doLogin").onclick = async () => {
-  const email = $("loginEmail").value.trim();
-  const password = $("loginPassword").value;
-
-  if (!email || !password) { setStatus("loginStatus", "Please enter your email and password.", "error"); return; }
-  if (!authReady()) { setStatus("loginStatus", missingSupabaseMessage(), "error"); return; }
-
-  setStatus("loginStatus", "Logging in...");
-
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  if (error) { setStatus("loginStatus", error.message, "error"); return; }
-
-  setStatus("loginStatus", "Logged in successfully.", "success");
-  setTimeout(() => show("home"), 500);
-};
-
-/* ---------- File + quiz generation ---------- */
-$("file").onchange = () => {
-  const f = $("file").files[0];
-  if (!f) return;
-  $("fileName").textContent = f.name;
-  $("fileBox").classList.add("show");
-  $("generate").disabled = false;
-  $("status").textContent = "Ready to generate a quiz from this file.";
-};
-
-$("generate").onclick = async () => {
-  const f = $("file").files[0];
-  if (!f) return;
-
-  $("generate").disabled = true;
-  $("generate").textContent = "Generating...";
-  $("status").textContent = "Reading your material and generating questions…";
-
-  const fd = new FormData();
-  fd.append("file", f);
-  fd.append("count", $("countRange").value || "10");
-  fd.append("difficulty", selectedDifficulty);
-
-  try {
-    const r = await fetch("/api/generate-quiz", { method: "POST", body: fd });
-    const rawText = await r.text();
-    
-    const data = safeJsonParse(rawText);
-    if (!data) {
-      throw new Error("Server response was not valid JSON. Please try again.");
-    }
-
-    if (!r.ok) throw new Error(data.error || "Generation failed");
-    questions = data.questions || [];
-    if (!questions.length) throw new Error("No questions returned");
-    
-    answers = {}; current = 0; currentExamId = null;
-    saveQuizToStorage();
-    
-    $("qDiff").textContent = selectedDifficulty;
-    show("quiz"); render();
-  } catch(e) {
-    $("status").textContent = "Error: " + e.message;
-  } finally {
-    $("generate").disabled = false;
-    $("generate").textContent = "Generate Quiz Now";
-  }
-};
-
-/* ---------- Quiz ---------- */
-function render() {
-  const q = questions[current];
-  $("qNum").textContent = `Question ${current + 1} of ${questions.length}`;
-  $("bar").style.width = ((current + 1) / questions.length * 100) + "%";
-  $("qText").textContent = q.question;
-  $("next").disabled = answers[current] === undefined;
-  $("next").textContent = current === questions.length - 1 ? "Finish Quiz" : "Next";
-  $("prev").style.visibility = current === 0 ? "hidden" : "visible";
-  $("opts").innerHTML = "";
-
-  q.options.forEach((o, k) => {
-    const b = document.createElement("button");
-    b.className = "option"; b.type = "button";
-    b.textContent = String.fromCharCode(65 + k) + ". " + o;
-    if (answers[current] === k) b.classList.add("selected");
-    b.onclick = () => {
-      document.querySelectorAll(".option").forEach(x => x.classList.remove("selected"));
-      b.classList.add("selected"); 
-      answers[current] = k; 
-      $("next").disabled = false;
-      saveQuizToStorage();
-    };
-    $("opts").appendChild(b);
-  });
+if(!email||!password){
+setStatus("signupStatus","Please enter your email and password.","error");
+return;
 }
 
-$("prev").onclick = () => { if (current > 0) { current--; saveQuizToStorage(); render(); } };
-$("next").onclick = () => { 
-  if (current < questions.length - 1) { 
-    current++; 
-    saveQuizToStorage(); 
-    render(); 
-  } else { 
-    finish(); 
-  } 
+if(password.length<6){
+setStatus("signupStatus","Password must be at least 6 characters.","error");
+return;
+}
+
+if(!authReady()){
+setStatus("signupStatus",missingSupabaseMessage(),"error");
+return;
+}
+
+setStatus("signupStatus","Creating account...");
+
+const{data,error}=await supabaseClient.auth.signUp({email,password});
+
+if(error){
+setStatus("signupStatus",error.message,"error");
+return;
+}
+
+if(data.session){
+setStatus("signupStatus","Account created successfully.","success");
+setTimeout(()=>show("home"),700);
+}else{
+setStatus("signupStatus","Account created. Check your email to confirm your account.","success");
+}
 };
 
-/* ---------- Results ---------- */
-function finish() {
-  let score = 0;
-  questions.forEach((q, i) => { if (answers[i] === q.correct_answer) score++; });
-  const total = questions.length, wrong = total - score, percent = Math.round(score / total * 100);
+$("doLogin").onclick=async()=>{
+const email=$("loginEmail").value.trim();
+const password=$("loginPassword").value;
 
-  $("score").textContent = `${score} / ${total}`;
-  $("percent").textContent = `${percent}%`;
-  $("correctCount").textContent = score;
-  $("wrongCount").textContent = wrong;
-  $("saveStatus").textContent = "";
-  $("shareBox").style.display = "none";
-
-  renderPerformanceAnalysis();
-
-  $("review").innerHTML = questions.map((q, i) => {
-    const ua = answers[i], ok = ua === q.correct_answer;
-    return `<div class="review-item ${ok ? "correct" : "incorrect"}">
-      <div class="review-status ${ok ? "correct-text" : "incorrect-text"}">${ok ? "✓ Correct" : "✕ Incorrect"}</div>
-      <b>${i + 1}. ${escapeHtml(q.question)}</b>
-      <div class="answer"><b>Your answer:</b> ${ua == null ? "—" : String.fromCharCode(65 + ua) + ". " + escapeHtml(q.options[ua])}</div>
-      <div class="answer"><b>Correct answer:</b> ${String.fromCharCode(65 + q.correct_answer)}. ${escapeHtml(q.options[q.correct_answer])}</div>
-      <p class="explanation"><b>Explanation:</b> ${escapeHtml(q.explanation)}</p>
-      <div class="muted"><b>Topic:</b> ${escapeHtml(q.topic || "General")} • <b>Source:</b> ${escapeHtml(q.source || "Document")}</div>
-    </div>`;
-  }).join("");
-
-  show("result");
-  saveQuizToStorage();
+if(!email||!password){
+setStatus("loginStatus","Please enter your email and password.","error");
+return;
 }
 
-function renderPerformanceAnalysis() {
-  const topicMap = {}, difficultyMap = {};
-
-  questions.forEach((q, i) => {
-    const topic = (q.topic || "General").trim() || "General";
-    const difficulty = (q.difficulty || "Unknown").trim() || "Unknown";
-    const correct = answers[i] === q.correct_answer;
-
-    if (!topicMap[topic]) topicMap[topic] = { total: 0, correct: 0 };
-    if (!difficultyMap[difficulty]) difficultyMap[difficulty] = { total: 0, correct: 0 };
-    topicMap[topic].total++; difficultyMap[difficulty].total++;
-    if (correct) { topicMap[topic].correct++; difficultyMap[difficulty].correct++; }
-  });
-
-  const topicRows = Object.entries(topicMap).sort((a, b) => a[0].localeCompare(b[0]));
-  const order = ["Easy", "Medium", "Hard"];
-  const difficultyRows = order.filter(x => difficultyMap[x]).map(x => [x, difficultyMap[x]]).concat(Object.entries(difficultyMap).filter(([x]) => !order.includes(x)));
-
-  $("topicAnalysis").innerHTML = topicRows.map(([name, d]) => analysisRow(name, d)).join("") || '<div class="muted">No topic data available.</div>';
-  $("difficultyAnalysis").innerHTML = difficultyRows.map(([name, d]) => analysisRow(name, d)).join("") || '<div class="muted">No difficulty data available.</div>';
+if(!authReady()){
+setStatus("loginStatus",missingSupabaseMessage(),"error");
+return;
 }
 
-function analysisRow(name, d) {
-  const pct = Math.round(d.correct / d.total * 100);
-  return `<div class="analysis-row"><div class="analysis-label" title="${escapeHtml(name)}">${escapeHtml(name)}</div><div class="analysis-value">${pct}%</div><div class="analysis-track"><div class="analysis-fill" style="width:${pct}%"></div></div></div>`;
+setStatus("loginStatus","Logging in...");
+
+const{error}=await supabaseClient.auth.signInWithPassword({email,password});
+
+if(error){
+setStatus("loginStatus",error.message,"error");
+return;
 }
 
-/* ---------- Save / Share ---------- */
-async function saveCurrentExam() {
-  if (!questions.length) { setStatus("saveStatus", "No exam to save.", "error"); return; }
-  if (!authReady()) { setStatus("saveStatus", missingSupabaseMessage(), "error"); return; }
-
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if (!session?.user) { setStatus("saveStatus", "Log in first to save this exam.", "error"); return; }
-
-  setStatus("saveStatus", "Saving exam...");
-  try {
-    const { data, error } = await supabaseClient.from("exams").insert([
-      { user_id: session.user.id, questions: questions, created_at: new Date() }
-    ]).select();
-
-    if (error) throw error;
-    setStatus("saveStatus", "Exam saved successfully!", "success");
-  } catch(e) {
-    setStatus("saveStatus", "Failed to save exam: " + e.message, "error");
-  }
-}
-
-$("saveExamBtn").onclick = saveCurrentExam;
-
-$("shareExamBtn").onclick = () => {
-  if (!questions.length) { setStatus("saveStatus", "No exam to share.", "error"); return; }
-  const url = window.location.origin + window.location.pathname + "#shared-preview";
-  $("shareLink").value = url;
-  $("shareBox").style.display = "flex";
-  setStatus("saveStatus", "Link generated successfully.", "success");
+setStatus("loginStatus","Logged in successfully.","success");
+setTimeout(()=>show("home"),500);
 };
 
-$("copyShareBtn").onclick = async () => {
-  const value = $("shareLink").value;
-  try {
-    await navigator.clipboard.writeText(value);
-    setStatus("saveStatus", "Link copied to clipboard.", "success");
-  } catch {
-    $("shareLink").select();
-    setStatus("saveStatus", "Select and copy the link manually.", "");
-  }
+$("file").onchange=()=>{
+const f=$("file").files[0];
+if(!f)return;
+
+$("fileName").textContent=f.name;
+$("fileBox").classList.add("show");
+$("generate").disabled=false;
+$("status").textContent="Ready to generate a quiz from this file.";
 };
 
-/* ---------- Dashboard ---------- */
-async function loadDashboard() {
-  const emailEl = $("dashboardEmail");
-  const list = $("examList");
+$("generate").onclick=async()=>{
+const f=$("file").files[0];
+if(!f)return;
 
-  if (!authReady()) {
-    emailEl.textContent = "";
-    $("dashExams").textContent = "0"; $("dashAttempts").textContent = "0"; $("dashAverage").textContent = "—";
-    list.textContent = "Connect Supabase to use your account dashboard.";
-    return;
-  }
+$("generate").disabled=true;
+$("generate").textContent="Generating...";
+$("status").textContent="Reading your material and generating questions…";
 
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if (!session?.user) { show("login"); return; }
+const fd=new FormData();
+fd.append("file",f);
+fd.append("count",$("countRange").value||"10");
+fd.append("difficulty",selectedDifficulty);
 
-  emailEl.textContent = session.user.email || "";
-  
-  try {
-    const { data: exams, error } = await supabaseClient.from("exams").select("*").eq("user_id", session.user.id);
-    if (error) throw error;
+try{
+const r=await fetch("/api/generate-quiz",{method:"POST",body:fd});
+const rawText=await r.text();
+const data=safeJsonParse(rawText);
 
-    $("dashExams").textContent = exams ? exams.length : "0";
-    if (exams && exams.length > 0) {
-      list.className = "";
-      list.innerHTML = exams.map(e => `<div style="padding:10px;border-bottom:1px solid #eee;">Exam ID: ${e.id} - ${e.questions.length} Questions</div>`).join("");
-    } else {
-      list.className = "empty";
-      list.textContent = "No saved exams yet.";
-    }
-  } catch(e) {
-    list.textContent = "Error loading saved exams.";
-  }
+if(!data)throw new Error("Server response was not valid JSON. Please try again.");
+if(!r.ok)throw new Error(data.error||"Generation failed");
+
+questions=data.questions||[];
+
+if(!questions.length)throw new Error("No questions returned");
+
+answers={};
+current=0;
+currentExamId=null;
+
+saveQuizToStorage();
+
+$("qDiff").textContent=selectedDifficulty;
+show("quiz");
+render();
+
+}catch(e){
+$("status").textContent="Error: "+e.message;
+}finally{
+$("generate").disabled=false;
+$("generate").textContent="Generate Quiz Now";
+}
+};
+
+function render(){
+const q=questions[current];
+
+$("qNum").textContent=`Question ${current+1} of ${questions.length}`;
+$("bar").style.width=((current+1)/questions.length*100)+"%";
+$("qText").textContent=q.question;
+$("next").disabled=answers[current]===undefined;
+$("next").textContent=current===questions.length-1?"Finish Quiz":"Next";
+$("prev").style.visibility=current===0?"hidden":"visible";
+$("opts").innerHTML="";
+
+q.options.forEach((o,k)=>{
+const b=document.createElement("button");
+b.className="option";
+b.type="button";
+b.textContent=String.fromCharCode(65+k)+". "+o;
+
+if(answers[current]===k)b.classList.add("selected");
+
+b.onclick=()=>{
+document.querySelectorAll(".option").forEach(x=>x.classList.remove("selected"));
+b.classList.add("selected");
+answers[current]=k;
+$("next").disabled=false;
+saveQuizToStorage();
+};
+
+$("opts").appendChild(b);
+});
 }
 
-/* ---------- Restart ---------- */
-$("restart").onclick = () => {
-  clearQuizStorage();
-  if ($("file")) $("file").value = ""; 
-  if ($("fileBox")) $("fileBox").classList.remove("show"); 
-  if ($("generate")) {
-    $("generate").disabled = true;
-    $("generate").textContent = "Generate Quiz Now";
-  }
-  if ($("status")) $("status").textContent = "Choose a file to begin.";
-  show("home");
+$("prev").onclick=()=>{
+if(current>0){
+current--;
+saveQuizToStorage();
+render();
+}
 };
 
-/* ---------- Page Init ---------- */
-document.addEventListener("DOMContentLoaded", () => {
-  restoreQuizFromStorage();
+$("next").onclick=()=>{
+if(current<questions.length-1){
+current++;
+saveQuizToStorage();
+render();
+}else{
+finish();
+}
+};
+
+function finish(){
+let score=0;
+
+questions.forEach((q,i)=>{
+if(answers[i]===q.correct_answer)score++;
+});
+
+const total=questions.length;
+const wrong=total-score;
+const percent=Math.round(score/total*100);
+
+$("score").textContent=`${score} / ${total}`;
+$("percent").textContent=`${percent}%`;
+$("correctCount").textContent=score;
+$("wrongCount").textContent=wrong;
+$("saveStatus").textContent="";
+$("shareBox").style.display="none";
+
+renderPerformanceAnalysis();
+
+$("review").innerHTML=questions.map((q,i)=>{
+const ua=answers[i];
+const ok=ua===q.correct_answer;
+
+return `<div class="review-item ${ok?"correct":"incorrect"}">
+<div class="review-status ${ok?"correct-text":"incorrect-text"}">${ok?"✓ Correct":"✕ Incorrect"}</div>
+<b>${i+1}. ${escapeHtml(q.question)}</b>
+<div class="answer"><b>Your answer:</b> ${ua==null?"—":String.fromCharCode(65+ua)+". "+escapeHtml(q.options[ua])}</div>
+<div class="answer"><b>Correct answer:</b> ${String.fromCharCode(65+q.correct_answer)}. ${escapeHtml(q.options[q.correct_answer])}</div>
+<p class="explanation"><b>Explanation:</b> ${escapeHtml(q.explanation)}</p>
+<div class="muted"><b>Topic:</b> ${escapeHtml(q.topic||"General")} • <b>Source:</b> ${escapeHtml(q.source||"Document")}</div>
+</div>`;
+}).join("");
+
+show("result");
+saveQuizToStorage();
+}
+
+function renderPerformanceAnalysis(){
+const topicMap={},difficultyMap={};
+
+questions.forEach((q,i)=>{
+const topic=(q.topic||"General").trim()||"General";
+const difficulty=(q.difficulty||"Unknown").trim()||"Unknown";
+const correct=answers[i]===q.correct_answer;
+
+if(!topicMap[topic])topicMap[topic]={total:0,correct:0};
+if(!difficultyMap[difficulty])difficultyMap[difficulty]={total:0,correct:0};
+
+topicMap[topic].total++;
+difficultyMap[difficulty].total++;
+
+if(correct){
+topicMap[topic].correct++;
+difficultyMap[difficulty].correct++;
+}
+});
+
+const topicRows=Object.entries(topicMap).sort((a,b)=>a[0].localeCompare(b[0]));
+const order=["Easy","Medium","Hard"];
+
+const difficultyRows=
+order.filter(x=>difficultyMap[x]).map(x=>[x,difficultyMap[x]])
+.concat(Object.entries(difficultyMap).filter(([x])=>!order.includes(x)));
+
+$("topicAnalysis").innerHTML=
+topicRows.map(([name,d])=>analysisRow(name,d)).join("")||
+'<div class="muted">No topic data available.</div>';
+
+$("difficultyAnalysis").innerHTML=
+difficultyRows.map(([name,d])=>analysisRow(name,d)).join("")||
+'<div class="muted">No difficulty data available.</div>';
+}
+
+function analysisRow(name,d){
+const pct=Math.round(d.correct/d.total*100);
+
+return `<div class="analysis-row">
+<div class="analysis-label" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+<div class="analysis-value">${pct}%</div>
+<div class="analysis-track"><div class="analysis-fill" style="width:${pct}%"></div></div>
+</div>`;
+}
+
+async function saveCurrentExam(){
+if(!questions.length){
+setStatus("saveStatus","No exam to save.","error");
+return;
+}
+
+if(!authReady()){
+setStatus("saveStatus",missingSupabaseMessage(),"error");
+return;
+}
+
+const{data:{session}}=await supabaseClient.auth.getSession();
+
+if(!session?.user){
+setStatus("saveStatus","Log in first to save this exam.","error");
+return;
+}
+
+setStatus("saveStatus","Saving exam...");
+
+try{
+const{data,error}=await supabaseClient
+.from("exams")
+.insert([{user_id:session.user.id,questions:questions,created_at:new Date()}])
+.select();
+
+if(error)throw error;
+
+setStatus("saveStatus","Exam saved successfully!","success");
+
+}catch(e){
+setStatus("saveStatus","Failed to save exam: "+e.message,"error");
+}
+}
+
+$("saveExamBtn").onclick=saveCurrentExam;
+
+$("shareExamBtn").onclick=()=>{
+if(!questions.length){
+setStatus("saveStatus","No exam to share.","error");
+return;
+}
+
+const url=window.location.origin+window.location.pathname+"#shared-preview";
+
+$("shareLink").value=url;
+$("shareBox").style.display="flex";
+
+setStatus("saveStatus","Link generated successfully.","success");
+};
+
+$("copyShareBtn").onclick=async()=>{
+const value=$("shareLink").value;
+
+try{
+await navigator.clipboard.writeText(value);
+setStatus("saveStatus","Link copied to clipboard.","success");
+}catch{
+$("shareLink").select();
+setStatus("saveStatus","Select and copy the link manually.","");
+}
+};
+
+async function loadDashboard(){
+const emailEl=$("dashboardEmail");
+const list=$("examList");
+
+if(!authReady()){
+emailEl.textContent="";
+$("dashExams").textContent="0";
+$("dashAttempts").textContent="0";
+$("dashAverage").textContent="—";
+list.textContent="Connect Supabase to use your account dashboard.";
+return;
+}
+
+const{data:{session}}=await supabaseClient.auth.getSession();
+
+if(!session?.user){
+show("login");
+return;
+}
+
+emailEl.textContent=session.user.email||"";
+
+try{
+const{data:exams,error}=await supabaseClient
+.from("exams")
+.select("*")
+.eq("user_id",session.user.id);
+
+if(error)throw error;
+
+$("dashExams").textContent=exams?exams.length:"0";
+
+if(exams&&exams.length>0){
+list.className="";
+list.innerHTML=exams.map(e=>
+`<div style="padding:10px;border-bottom:1px solid #eee;">
+Exam ID: ${e.id} - ${e.questions.length} Questions
+</div>`).join("");
+}else{
+list.className="empty";
+list.textContent="No saved exams yet.";
+}
+
+}catch(e){
+list.textContent="Error loading saved exams.";
+}
+}
+
+$("restart").onclick=()=>{
+clearQuizStorage();
+
+if($("file"))$("file").value="";
+if($("fileBox"))$("fileBox").classList.remove("show");
+
+if($("generate")){
+$("generate").disabled=true;
+$("generate").textContent="Generate Quiz Now";
+}
+
+if($("status"))$("status").textContent="Choose a file to begin.";
+
+show("home");
+};
+
+document.addEventListener("DOMContentLoaded",()=>{
+restoreQuizFromStorage();
 });
 </script>
+
 </body>
 </html>
