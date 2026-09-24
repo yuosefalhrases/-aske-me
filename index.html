@@ -205,6 +205,7 @@ justify-content:center;
 </label>
 
 <input id="file" type="file" accept=".pdf,.ppt,.pptx,.doc,.docx">
+
 <div id="fileBox" class="file">
 <span id="fileName"></span><span class="muted">Ready</span>
 </div>
@@ -366,7 +367,6 @@ justify-content:center;
 <a href="#">Legal</a>
 </div>
 
-<!-- Social Media -->
 <div class="socials">
 
 <a href="https://www.facebook.com/share/1GPaw3JRog/?mibextid=wwXIfr"
@@ -682,15 +682,24 @@ setStatus("loginStatus","Logged in successfully.","success");
 setTimeout(()=>show("home"),500);
 };
 
-$("file").onchange=()=>{
-const f=$("file").files[0];
-if(!f)return;
 
-$("fileName").textContent=f.name;
-$("fileBox").classList.add("show");
-$("generate").disabled=false;
-$("status").textContent="Ready to generate a quiz from this file.";
-};
+/* =========================
+   FILE UPLOAD FIX
+   ========================= */
+
+document.getElementById("file").addEventListener("change",function(){
+const f=this.files[0];
+
+if(!f){
+return;
+}
+
+document.getElementById("fileName").textContent=f.name;
+document.getElementById("fileBox").classList.add("show");
+document.getElementById("generate").disabled=false;
+document.getElementById("status").textContent="Ready to generate a quiz from this file.";
+});
+
 
 $("generate").onclick=async()=>{
 const f=$("file").files[0];
