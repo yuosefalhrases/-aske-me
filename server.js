@@ -134,13 +134,13 @@ const quizResponseSchema = {
   required: ["questions"],
 };
 
-// محرك التنفيذ المحمي والمعالج بالنماذج الرسمية المعتمدة
+// محرك التنفيذ المحدث بأسماء النماذج الرسمية والمستقرة فقط
 async function executeGeminiWithFallback(ai, contents) {
-  // قائمة النماذج المستقرة بالترتيب
+  // قائمة النماذج الرسمية المعتمدة لدى API
   const activeModels = [
     "gemini-1.5-flash",
-    "gemini-2.0-flash",
-    "gemini-1.5-pro-latest"
+    "gemini-1.5-pro",
+    "gemini-2.0-flash"
   ];
 
   let lastError = null;
@@ -168,9 +168,9 @@ async function executeGeminiWithFallback(ai, contents) {
 
       console.error(`[AI Error - ${modelName}]:`, errMsg);
 
-      // إذا تعذر الوصول للنموذج أو كان غير مدعوم (404)، ينتقل تلقائياً للنموذج التالي
+      // الانتقال للنموذج التالي في حال كانت هناك مشكلة في اسم النموذج أو الصلاحية
       if (errMsg.includes("404") || errMsg.includes("not found")) {
-        console.warn(`[AI Engine] Model ${modelName} not found. Skipping...`);
+        console.warn(`[AI Engine] Model ${modelName} returned 404. Trying next model...`);
         continue;
       }
     }
